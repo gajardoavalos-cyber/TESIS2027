@@ -1,0 +1,375 @@
+% =====================================================================
+%  Propuesta de tema de tesis — Reunión con Prof. Enrique Espina (26-10-2026)
+%  Felipe Gajardo Ávalos · Magíster en Ciencias de la Ingeniería, USACH
+%  Formato: plantilla de clases de Circuitos Eléctricos I (USACH)
+%  Compilar con XeLaTeX (dos pasadas): xelatex propuesta_tesis_usach.tex
+%  Requiere en fig/: fondo_usach_portada.png y fondo_usach_contenido.png
+%  Láminas R0–R10: respaldo para preguntas (enlazadas con botones)
+% =====================================================================
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[aspectratio=169,10pt,t]{beamer}
+
+\usefonttheme{professionalfonts}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,array,tabularx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing,shapes.geometric}
+\graphicspath{{fig/}}
+
+% ------------------------------- Colores USACH -----------------------
+\definecolor{usachT}{HTML}{009688}
+\definecolor{usachTd}{HTML}{007B73}
+\definecolor{usachO}{HTML}{E77500}
+\definecolor{usachOl}{HTML}{FDF0E3}
+\definecolor{usachR}{HTML}{E53935}
+\definecolor{faseA}{HTML}{C0392B}
+\definecolor{faseB}{HTML}{2E8B57}
+\definecolor{faseC}{HTML}{1F5FAF}
+
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{structure}{fg=usachT}
+\setbeamercolor{frametitle}{fg=usachT}
+\setbeamercolor{alerted text}{fg=usachR}
+\setbeamercolor{block title}{fg=white,bg=usachT}
+\setbeamercolor{block body}{fg=black,bg=white}
+\setbeamercolor{block title alerted}{fg=usachR,bg=}
+\setbeamercolor{block body alerted}{fg=black,bg=}
+\setbeamercolor{block title example}{fg=white,bg=usachO}
+\setbeamercolor{block body example}{fg=black,bg=white}
+\setbeamercolor{button}{bg=usachO,fg=white}
+\setbeamertemplate{blocks}[default]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{usachT}\scriptsize$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{usachT}\tiny$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{usachT}\bfseries\insertenumlabel.}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamerfont{block title}{size=\normalsize}
+\setbeamerfont{button}{size=\tiny}
+
+\setbeamersize{text margin left=2.75cm,text margin right=0.55cm}
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_contenido.png}}
+\setbeamertemplate{headline}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[fill=usachT!55,text=white,rounded corners=1.5pt,font=\tiny,inner sep=2pt,anchor=north east]
+      at ([xshift=-0.22cm,yshift=-0.16cm]current page.north east) {\insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}}
+\setbeamertemplate{frametitle}{\vskip0.42cm\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par\vskip0.12cm}
+\setbeamertemplate{footline}{\vbox to 0.72cm{}}
+
+\newcommand{\thead}{\rowcolor{usachO}}
+\newcommand{\Th}[1]{\textcolor{white}{\textbf{#1}}}
+% Botón a lámina de respaldo / volver al mapa
+\newcommand{\resp}[2]{\hyperlink{#1}{\beamerbutton{#2}}}
+\newcommand{\volver}{\begin{tikzpicture}[remember picture,overlay]\node[anchor=south east] at ([xshift=-0.3cm,yshift=0.95cm]current page.south east){\hyperlink{mapa}{\beamerreturnbutton{Volver al mapa de respaldo}}};\end{tikzpicture}}
+
+% ------------------------------- Macros -------------------------------
+\newcommand{\Pic}[1]{P_{\mathrm{IC},#1}}
+\newcommand{\Qic}[1]{Q_{\mathrm{IC},#1}}
+\newcommand{\PB}[1]{P_{\mathrm{B},#1}}
+\newcommand{\SOC}[1]{\mathrm{SOC}_{#1}}
+\newcommand{\SOCw}{\overline{\mathrm{SOC}}_{w}}
+\newcommand{\Nset}[1]{\mathcal{N}_{#1}}
+
+\tikzset{
+  blk/.style={draw,rounded corners=2pt,minimum height=0.9cm,align=center,font=\footnotesize,line width=.5pt},
+  ac/.style={blk,fill=gray!12},
+  ic/.style={blk,fill=usachT!10,draw=usachT},
+  co/.style={blk,fill=usachO!12,draw=usachO},
+  pw/.style={{Latex[length=2mm]}-{Latex[length=2mm]},line width=.7pt},
+  sg/.style={-{Latex[length=2mm]},dashed,line width=.6pt,usachO},
+  fl/.style={-{Latex[length=2mm]},line width=.7pt},
+  card/.style={draw=usachT,line width=.6pt,rounded corners=2pt,fill=white,align=left,text width=#1,inner sep=5pt,font=\footnotesize},
+  house/.pic={\fill[#1!75] (-0.13,0) rectangle (0.13,0.2); \fill[#1] (-0.17,0.2) -- (0,0.36) -- (0.17,0.2) -- cycle;},
+}
+
+\begin{document}
+\newcommand{\abierto}[1]{\tikz[baseline=-0.6ex]\node[circle,fill=usachR,text=white,font=\tiny\bfseries,inner sep=0.6pt,minimum size=9pt]{#1};}
+\colorlet{cT}{usachO}\colorlet{cL}{faseB}\colorlet{cS}{usachT}\colorlet{cP}{faseC}
+\tikzset{
+  conj/.style={ellipse,draw=#1,line width=0.9pt,fill=#1!7,align=center,inner sep=1pt,font=\scriptsize},
+  fun/.style={draw=#1,line width=1pt,fill=#1!18,rounded corners=3pt,align=center,font=\footnotesize,minimum height=1.3cm,text width=2.4cm},
+  ttl/.style={font=\footnotesize\bfseries,text=#1},
+  fle/.style={-{Latex[length=2.5mm]},line width=1.1pt,#1},
+  mr/.style={circle,draw=#1,fill=white,line width=.7pt,minimum size=1.0cm,inner sep=0pt,align=center,font=\tiny},
+}
+
+% =====================================================================
+{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_portada.png}}
+\setbeamertemplate{headline}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[text=white,font=\small,anchor=north west] at ([xshift=0.45cm,yshift=-0.35cm]current page.north west) {9 de noviembre de 2026};
+    \node[text=white,align=center,anchor=north,text width=14.5cm] at ([yshift=-4.55cm]current page.north) {%
+      {\fontsize{15}{17}\selectfont Niveles de control como conjuntos\\[1pt] de entradas y salidas}\\[4pt]
+      {\normalsize Qué ve, qué decide y a quién informa cada nivel}\\[3pt]
+      {\scriptsize\bfseries Magíster en Ciencias de la Ingeniería, mención Electricidad}\\[3pt]
+      {\scriptsize\bfseries Estudiante: Felipe Gajardo Ávalos}\\[1pt]
+      {\scriptsize Profesor guía: Dr. Enrique Espina González}\\[1pt]
+      {\scriptsize Departamento de Ingeniería Eléctrica, USACH}};
+  \end{tikzpicture}
+\end{frame}
+}
+
+% =====================================================================
+\begin{frame}{La idea: cada nivel es una función entre conjuntos}
+  \vspace{0.2cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[conj=gray,minimum width=3.3cm,minimum height=2.1cm] (U) at (0,0) {$u_1,\;u_2,\;\dots$\\[2pt] lo que el nivel\\ \textbf{mide o recibe}};
+    \node[ttl=gray!70!black,above=2pt of U] {$\mathcal U$ = conjunto de entradas};
+    \node[fun=gray] (f) at (4.1,0) {\textbf{Nivel}\\ $f:\mathcal U\to\mathcal Y$\\[1pt]\scriptsize decide};
+    \node[conj=gray,minimum width=3.3cm,minimum height=2.1cm] (Y) at (8.2,0) {$y_1,\;y_2,\;\dots$\\[2pt] lo que el nivel\\ \textbf{decide y envía}};
+    \node[ttl=gray!70!black,above=2pt of Y] {$\mathcal Y$ = conjunto de salidas};
+    \draw[fle=gray] (U) -- (f); \draw[fle=gray] (f) -- (Y);
+  \end{tikzpicture}
+
+  \vspace{0.45cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \begin{tikzpicture}
+      \node[card=6cm] {\textbf{\color{usachT}Tres reglas}\\[2pt]
+        \textbf{1.} Un nivel solo puede usar lo que está en su $\mathcal U$.\\
+        \textbf{2.} Lo que un nivel envía ($\mathcal Y$) es parte del $\mathcal U$ de otro.\\
+        \textbf{3.} Si dos conjuntos no se cruzan ($\cap=\varnothing$), esos niveles no comparten información.};
+    \end{tikzpicture}
+    \column{.47\textwidth}
+    \begin{tikzpicture}
+      \node[card=5.7cm,draw=usachO] {\textbf{\color{usachO}Analogía}\\[2pt] Una cocina: el chef (terciario) arma el menú con lo que sabe de los clientes; cada cocinero (secundario) prepara su plato con \textbf{sus} ingredientes y no mira la sala; el horno (primario) solo sigue la temperatura que le dan.};
+    \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Los conjuntos del escenario}
+  \begin{columns}[T,onlytextwidth]
+    \column{.56\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+      \draw[gray,line width=.8pt,rounded corners=6pt] (-0.25,-0.4) rectangle (7.0,3.85);
+      \node[gray!70!black,anchor=north west,font=\scriptsize\bfseries] at (-0.2,3.82) {$\mathcal N$: todas las micro-redes};
+      \foreach \x/\w/\c/\f in {0/1.9/faseA/a,2.15/1.3/faseB/b,3.7/3.1/faseC/c}{
+        \draw[\c,fill=\c!8,line width=.9pt,rounded corners=5pt] (\x,0) rectangle (\x+\w,3.25);
+        \node[\c,font=\scriptsize\bfseries,anchor=north] at (\x+\w/2,3.22) {$\mathcal N_\f$};
+      }
+      \node[mr=faseA] at (0.95,0.75) {MR$_1$\\ PV, B};
+      \node[mr=faseA] at (0.95,1.95) {MR$_2$\\ B, EV};
+      \node[mr=faseB] at (2.8,1.35) {MR$_3$\\ PV, B, EV};
+      \node[mr=faseC] at (4.25,1.35) {MR$_4$\\ PV};
+      \node[mr=faseC] at (5.25,1.35) {MR$_5$\\ B, EV};
+      \node[mr=faseC] at (6.25,1.35) {MR$_6$\\ PV, B};
+      \node[font=\tiny,gray!70!black] at (3.4,-0.22) {dentro de cada MR: su conjunto de DER $\mathcal D_k$};
+    \end{tikzpicture}
+    \column{.42\textwidth}
+    \footnotesize
+    \textbf{\color{usachT}Fases}\quad $\Phi=\{a,b,c\}$
+
+    \vspace{4pt}
+    \textbf{\color{usachT}Micro-redes}: una \textbf{partición} de $\mathcal N$
+    \[ \mathcal N=\mathcal N_a\cup\mathcal N_b\cup\mathcal N_c,\qquad \mathcal N_\phi\cap\mathcal N_\psi=\varnothing \]
+    {\scriptsize cada micro-red está en \textbf{una sola} fase; $|\mathcal N_\phi|=N_\phi$}
+
+    \vspace{4pt}
+    \textbf{\color{usachT}DER de la micro-red $k$}
+    \[ \mathcal D_k\subseteq\{\text{PV},\,\text{BESS},\,\text{EV},\,\text{carga}\} \]
+    {\scriptsize cada micro-red tiene una cantidad distinta de cada recurso}
+
+    \vspace{4pt}
+    \textbf{\color{usachT}Tiempos}
+    \[ \mathcal T_H=\{t,\;t+\Delta t,\;\dots,\;t+H\},\quad \Delta t=15\text{ min} \]
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Mapa general: cuatro niveles, cuatro funciones}
+  \centering
+  \resizebox{!}{5.75cm}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \node[fun=cT,text width=4.6cm,minimum height=1.0cm] (T) at (0,4.5) {\textbf{Terciario}\quad $f_T:\mathcal U_T\to\mathcal Y_T$\\ \tiny centralizado · cada 15 min · ventana $H$};
+    \node[fun=cL,text width=4.6cm,minimum height=1.0cm] (L) at (6.2,4.5) {\textbf{Lazo rápido}\quad $f_L:\mathcal U_L\to\mathcal Y_L$\\ \tiny segundos · usa el margen del rango de SoC};
+    \node[fun=cS,text width=4.6cm,minimum height=1.0cm] (S) at (0,2.2) {\textbf{Secundario de la MR $k$}\quad $f_{S,k}$\\ \tiny uno por micro-red · solo sus DER};
+    \node[fun=cP,text width=4.6cm,minimum height=1.0cm] (P) at (0,0) {\textbf{Primario}\quad $f_P$\\ \tiny local · ms · DER grid-supporting e IC};
+    \node[ac,text width=3.2cm,minimum height=1.0cm] (H) at (6.2,2.2) {\textbf{Cabecera}\\ \tiny medición $S_{h,\phi}$, $I_0$, $I_2$};
+    \node[blk,fill=gray!6,text width=3.2cm,minimum height=1.0cm] (G) at (6.2,0) {\textbf{Planta}\\ \tiny micro-redes + IC + alimentador};
+    \draw[fle=cT] (T) -- node[right,font=\tiny,black,align=left]{$\mathcal Y_T$: plan $P^*_k,Q^*_k$\\ y rango de SoC$_k$} (S);
+    \draw[fle=cS] (S) -- node[right,font=\tiny,black]{$\mathcal Y_{S,k}$: referencias de cada DER} (P);
+    \draw[pw] (P) -- (G);
+    \draw[fle=gray] (G) -- node[right,font=\tiny,black]{corrientes de fase} (H);
+    \draw[fle=gray] (H) -- node[right,font=\tiny,black]{$I_0,I_2$ medidos} (L);
+    \draw[fle=cL,dashed] ([xshift=0.4cm]L.south west) -- node[pos=.3,right,font=\tiny,black]{$\mathcal Y_L$: $\Delta P_k,\Delta Q_k$ \abierto{4}} ([xshift=-0.3cm]P.north east);
+    \draw[fle=gray,dashed] (H.west) -- node[pos=.18,above,font=\tiny,black]{$S_{h,\phi}$} (S.east -| 2.9,2.2) -- (2.9,3.95);
+    \draw[fle=gray,dashed] ([xshift=-1.6cm]S.north) -- node[left,font=\tiny,black]{SoC$_k$} ([xshift=-1.6cm]T.south);
+    \draw[fle=gray] ([yshift=0.75cm]T.north) node[above,font=\tiny,black]{pronósticos, tarifa \abierto{2}} -- (T.north);
+    \node[font=\tiny,cT] at (-3.3,4.5) {min}; \node[font=\tiny,cS] at (-3.3,2.2) {s}; \node[font=\tiny,cP] at (-3.3,0) {ms};
+  \end{tikzpicture}}
+
+  \vspace{2pt}
+  {\scriptsize\raggedright Línea continua: consignas hacia abajo. Línea punteada: mediciones hacia arriba y la corrección del lazo rápido, cuyo camino hacia los IC está por definir \abierto{4}.\par}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Terciario: $f_T:\mathcal U_T\to\mathcal Y_T$}
+  \vspace{0.1cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[conj=cT,minimum width=4.6cm,minimum height=3.3cm] (U) at (0,0) {%
+      \textbf{Pronósticos} en $\mathcal T_H$:\\ $\hat S_{L,\phi}$, \;$\hat P_{PV,k}$\\ EV: llegada, salida, $E^{req}$\\[2pt]
+      \textbf{Tarifa} $c(\tau)$ \abierto{2}\\[2pt]
+      \textbf{Medición}: $S_{h,\phi}(t)$\\[2pt]
+      \textbf{Estado}: SoC de BESS y EV};
+    \node[ttl=cT,above=1pt of U] {$\mathcal U_T$ (entradas)};
+    \node[fun=cT,text width=2.6cm,minimum height=1.9cm] (f) at (4.55,0) {\textbf{Optimización}\\ ventana fija $H$ \abierto{1}\\[2pt]\scriptsize mín.\ compra de energía\\ + desbalance\\ entre fases};
+    \node[conj=cT,minimum width=4.2cm,minimum height=3.0cm] (Y) at (9.05,0) {%
+      Para cada $k\in\mathcal N$:\\[3pt]
+      \textbf{plan} $P^*_{\mathrm{IC},k},\;Q^*_{\mathrm{IC},k}$\\[3pt]
+      \textbf{rango} $[\mathrm{SoC}^{\min}_k,\,\mathrm{SoC}^{\max}_k]$ \abierto{3}\\[3pt]
+      \scriptsize válidos para el intervalo\\ $[t,\;t+15\text{ min}]$};
+    \node[ttl=cT,above=1pt of Y] {$\mathcal Y_T$ (salidas)};
+    \draw[fle=cT] (U) -- (f); \draw[fle=cT] (f) -- (Y);
+  \end{tikzpicture}
+
+  \vspace{0.25cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \begin{tikzpicture}\node[card=6cm] {\textbf{\color{usachO}Envía $\mathcal Y_T$ a:} cada micro-red (su secundario).\\ Al lazo rápido: ¿el rango o solo el margen? \abierto{4}};\end{tikzpicture}
+    \column{.47\textwidth}
+    \begin{tikzpicture}\node[card=5.7cm] {\textbf{\color{usachO}Para qué el rango:} acota la \textbf{energía} de cada micro-red en el intervalo y deja un \textbf{margen} para corregir el desbalance.};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Lazo rápido: $f_L:\mathcal U_L\to\mathcal Y_L$}
+  \vspace{0.1cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[conj=cL,minimum width=4.4cm,minimum height=2.8cm] (U) at (0,0) {%
+      \textbf{Medición de cabecera}:\\ $I_0,\;I_2$\\ (o $P_{h,\phi},\;Q_{h,\phi}$)\\[3pt]
+      \textbf{Margen de SoC}\\ de cada micro-red \abierto{4}};
+    \node[ttl=cL,above=1pt of U] {$\mathcal U_L$ (entradas)};
+    \node[fun=cL,text width=2.6cm,minimum height=1.9cm] (f) at (4.5,0) {\textbf{Corrección}\\ segundos\\[2pt]\scriptsize reducir el desbalance\\ \textbf{medido}};
+    \node[conj=cL,minimum width=4.2cm,minimum height=2.8cm] (Y) at (9.0,0) {%
+      Para cada $k\in\mathcal N$:\\[3pt]
+      $\Delta P_k,\;\Delta Q_k$\\[3pt]
+      \scriptsize sin salir del\\ rango de SoC$_k$};
+    \node[ttl=cL,above=1pt of Y] {$\mathcal Y_L$ (salidas)};
+    \draw[fle=cL] (U) -- (f); \draw[fle=cL] (f) -- (Y);
+  \end{tikzpicture}
+
+  \vspace{0.3cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{.32\textwidth}
+    \begin{tikzpicture}\node[card=3.9cm,draw=cL] {\textbf{\color{faseB}No busca}\\ seguir el plan: el plan también puede venir desbalanceado.};\end{tikzpicture}
+    \column{.32\textwidth}
+    \begin{tikzpicture}\node[card=3.9cm,draw=cL] {\textbf{\color{faseB}Usa $Q$ primero}\\ porque no gasta energía; $P$ solo dentro del margen.};\end{tikzpicture}
+    \column{.32\textwidth}
+    \begin{tikzpicture}\node[card=3.9cm,draw=usachR] {\textbf{\color{usachR}Por definir} \abierto{4}\\ cómo llega a los IC; no se acopla a secundarios por fase.};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Secundario de la micro-red $k$: $f_{S,k}:\mathcal U_{S,k}\to\mathcal Y_{S,k}$}
+  \vspace{0.1cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[conj=cS,minimum width=4.6cm,minimum height=3.1cm] (U) at (0,0) {%
+      \textbf{Del terciario}: plan$_k$,\\ rango de SoC$_k$\\[3pt]
+      \textbf{Propias}: $V_{dc,k}$,\\ SoC y potencia de su\\ BESS y su EV,\\ FV disponible};
+    \node[ttl=cS,above=1pt of U] {$\mathcal U_{S,k}$ (entradas)};
+    \node[fun=cS,text width=2.6cm,minimum height=1.9cm] (f) at (4.55,0) {\textbf{Reparto interno}\\[2pt]\scriptsize consigna del IC$_k$\\ entre sus DER;\\ restaura $V_{dc,k}$};
+    \node[conj=cS,minimum width=4.2cm,minimum height=3.0cm] (Y) at (9.05,0) {%
+      Para cada $d\in\mathcal D_k$:\\ \textbf{referencia} de su primario\\[3pt]
+      respetando límites\\ de BESS y EV\\[3pt]
+      \textbf{Hacia arriba}: SoC$_k$};
+    \node[ttl=cS,above=1pt of Y] {$\mathcal Y_{S,k}$ (salidas)};
+    \draw[fle=cS] (U) -- (f); \draw[fle=cS] (f) -- (Y);
+  \end{tikzpicture}
+
+  \vspace{0.25cm}
+  \begin{tikzpicture}
+    \node[card=12.4cm,draw=usachR] {\textbf{\color{usachR}Lo que NO está en su conjunto} (dicho con conjuntos):\qquad
+      $\mathcal U_{S,k}\cap\{S_{h,\phi},I_0,I_2\}=\varnothing$ \;(no ve la cabecera)\qquad
+      $\mathcal U_{S,k}\cap\mathcal Y_{S,j}=\varnothing,\; j\neq k$ \;(no coordina con otras micro-redes)};
+  \end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Primario: $f_P:\mathcal U_P\to\mathcal Y_P$ (en cada convertidor)}
+  \vspace{0.1cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[conj=cP,minimum width=4.4cm,minimum height=2.8cm] (U) at (0,0) {%
+      \textbf{Referencia}:\\ del secundario (DER)\\ o $P^*+\Delta P,\;Q^*+\Delta Q$ (IC)\\[3pt]
+      \textbf{Locales}: $v,\;i$,\\ $V_{dc}$; $v,\,f$ en el IC};
+    \node[ttl=cP,above=1pt of U] {$\mathcal U_P$ (entradas)};
+    \node[fun=cP,text width=2.6cm,minimum height=1.9cm] (f) at (4.5,0) {\textbf{Control local}\\ ms\\[2pt]\scriptsize droop, corriente,\\ PLL};
+    \node[conj=cP,minimum width=4.0cm,minimum height=2.6cm] (Y) at (9.0,0) {%
+      \textbf{Disparo / modulación}\\ de su convertidor\\[3pt]
+      \scriptsize no envía información\\ a otros niveles};
+    \node[ttl=cP,above=1pt of Y] {$\mathcal Y_P$ (salidas)};
+    \draw[fle=cP] (U) -- (f); \draw[fle=cP] (f) -- (Y);
+  \end{tikzpicture}
+
+  \vspace{0.3cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{.49\textwidth}
+    \begin{tikzpicture}\node[card=6cm,draw=cP] {\textbf{\color{faseC}DER grid-supporting:} ajustan su potencia según $V_{dc}$ (droop $P$--$V_{dc}$): apoyan la tensión DC sin formarla solos.};\end{tikzpicture}
+    \column{.49\textwidth}
+    \begin{tikzpicture}\node[card=6cm,draw=usachR] {\textbf{\color{usachR}IC} \abierto{5}: ¿también grid-supporting en el lado AC ($P$--$f$, $Q$--$V$) o solo sigue $P^*+\Delta P$, $Q^*+\Delta Q$?};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{¿Quién ve qué? Intersección de los conjuntos de información}
+  \begin{columns}[T,onlytextwidth]
+    \column{.6\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1cm,font=\tiny]
+      \fill[cT,opacity=.12] (0,0.9) circle (1.9);   \draw[cT,line width=1pt] (0,0.9) circle (1.9);
+      \fill[cL,opacity=.12] (2.4,0.9) circle (1.9); \draw[cL,line width=1pt] (2.4,0.9) circle (1.9);
+      \fill[cS,opacity=.12] (1.2,-1.1) circle (1.9);\draw[cS,line width=1pt] (1.2,-1.1) circle (1.9);
+      \node[cT,font=\scriptsize\bfseries] at (-0.9,2.6) {$\mathcal I_T$ terciario};
+      \node[cL,font=\scriptsize\bfseries] at (3.4,2.6) {$\mathcal I_L$ lazo rápido};
+      \node[cS,font=\scriptsize\bfseries] at (1.2,-3.25) {$\mathcal I_{S,k}$ secundario $k$};
+      \node[align=center] at (-0.75,1.35) {pronósticos\\ tarifa\\ EV: $E^{req}$};
+      \node[align=center] at (1.2,2.05) {medición\\ de cabecera\\ $S_{h,\phi}$, $I_0$, $I_2$};
+      \node[align=center] at (3.2,1.25) {$\Delta P_k$, $\Delta Q_k$\\ (sus salidas)};
+      \node[align=center] at (0.1,-0.45) {plan$_k$\\ SoC$_k$};
+      \node[align=center] at (2.35,-0.45) {¿$\Delta P_k$?\\ \abierto{4}};
+      \node[align=center,font=\tiny\bfseries] at (1.2,0.25) {rango\\ SoC$_k$};
+      \node[align=center] at (1.2,-1.85) {$V_{dc,k}$, SoC y\\ potencia de sus\\ BESS y EV, FV};
+    \end{tikzpicture}
+    \column{.38\textwidth}
+    \footnotesize
+    \textbf{\color{usachT}Cómo leerlo}
+    \begin{itemize}\setlength\itemsep{3pt}
+      \item $\mathcal I_T\cap\mathcal I_L$: los dos miran la \textbf{cabecera}.
+      \item $\mathcal I_T\cap\mathcal I_{S,k}$: el \textbf{plan} baja y el \textbf{SoC} sube.
+      \item Centro, los tres: el \textbf{rango de SoC}: el terciario lo fija, el lazo rápido usa su margen y el secundario lo respeta.
+      \item Cabecera $\notin\mathcal I_{S,k}$: el secundario no la ve.
+      \item $\mathcal I_{S,k}\cap\mathcal I_{S,j}=\varnothing$ si $j\neq k$.
+      \item ¿$\mathcal I_L\cap\mathcal I_{S,k}$? Depende de cómo llegue la corrección \abierto{4}.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Puntos por aclarar}
+  \vspace{0.2cm}
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
+    \foreach \i/\y/\t in {
+      1/0/{\textbf{Ventana $H$:} ¿qué duración? Propuesta: que cubra el evento de demanda alta más largo (caso simple).},
+      2/-0.95/{\textbf{Objetivo:} ¿minimizar la energía comprada o su costo con una tarifa horaria?},
+      3/-1.9/{\textbf{Rango de SoC:} ¿acota el SoC al final del intervalo o toda la trayectoria? ¿Cómo se elige su ancho?},
+      4/-2.85/{\textbf{Lazo rápido:} ¿centralizado en cabecera o distribuido? ¿Conoce el margen de cada micro-red? ¿Su corrección pasa por el secundario o va directo al IC?},
+      5/-3.8/{\textbf{IC:} ¿grid-supporting también en el lado AC, o solo sigue consignas?}}{
+      \node[circle,fill=usachR,text=white,font=\footnotesize\bfseries,minimum size=0.6cm] at (0,\y) {\i};
+      \node[anchor=west,text width=11.4cm] at (0.5,\y) {\t};
+    }
+  \end{tikzpicture}
+\end{frame}
+
+\end{document}

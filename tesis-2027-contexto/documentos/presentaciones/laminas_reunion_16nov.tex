@@ -1,0 +1,351 @@
+% =====================================================================
+%  Reunión de tesis con Prof. Enrique Espina — lunes 16-11-2026, 17:00
+%  Felipe Gajardo Ávalos · Magíster en Ciencias de la Ingeniería, USACH
+%  Responde al correo del 10-11-2026:
+%   Lámina 1: niveles actualizados (qué mide, qué decide y a quién informa)
+%   Lámina 2: formulación del terciario (objetivo, envolvente, reserva)
+%   Lámina 3: regla del lazo rápido (qué mide, corrección por fase, reparto)
+%   Lámina 4 (respaldo): ejemplo numérico de envolvente
+%  Formato: plantilla de clases USACH (fondo en fig/fondo_usach_contenido.png)
+%  Compilar con XeLaTeX (dos pasadas): xelatex laminas_reunion_16nov.tex
+% =====================================================================
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[aspectratio=169,10pt,t]{beamer}
+
+\usefonttheme{professionalfonts}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.misc,shapes.symbols,decorations.pathreplacing}
+\graphicspath{{fig/}}
+
+% ------------------------------- Colores USACH -----------------------
+\definecolor{usachT}{HTML}{009688}
+\definecolor{usachTd}{HTML}{00695C}
+\definecolor{usachO}{HTML}{E77500}
+\definecolor{usachOl}{HTML}{FDF0E3}
+\definecolor{usachR}{HTML}{C62828}
+\definecolor{verdeL}{HTML}{2E7D32}
+\definecolor{azulP}{HTML}{1F5FAF}
+\definecolor{grisM}{HTML}{55606E}
+\colorlet{cT}{usachO}\colorlet{cL}{verdeL}\colorlet{cS}{usachT}\colorlet{cP}{azulP}
+
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{structure}{fg=usachT}
+\setbeamercolor{frametitle}{fg=usachT}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamersize{text margin left=2.75cm,text margin right=0.55cm}
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_contenido.png}}
+\setbeamertemplate{headline}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[fill=usachT!55,text=white,rounded corners=1.5pt,font=\tiny,inner sep=2pt,anchor=north east]
+      at ([xshift=-0.22cm,yshift=-0.16cm]current page.north east) {\insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}}
+\setbeamertemplate{frametitle}{\vskip0.36cm\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par\vskip0.04cm}
+\setbeamertemplate{footline}{\vbox to 0.62cm{}}
+
+\newcommand{\SoC}{\mathrm{SoC}}
+
+\tikzset{
+  % ---- lámina 1
+  tag/.style={fill=#1,text=white,rounded corners=3pt,align=center,text width=2.3cm,minimum height=1.95cm,inner sep=3pt,font=\footnotesize},
+  ent/.style={draw=gray!55,fill=white,rounded corners=2pt,align=left,text width=4.55cm,minimum height=1.95cm,inner sep=4pt,font=\footnotesize,line width=.6pt},
+  dec/.style={draw=#1,line width=1.3pt,fill=#1!10,rounded corners=3pt,align=center,text width=2.95cm,minimum height=1.95cm,inner sep=3pt,font=\footnotesize},
+  sal/.style={draw=#1,fill=white,rounded corners=2pt,align=left,text width=4.45cm,minimum height=1.95cm,inner sep=4pt,font=\footnotesize,line width=.9pt},
+  fin/.style={-{Latex[length=2.4mm]},line width=1.1pt,gray!60!black},
+  fout/.style={-{Latex[length=2.4mm]},line width=1.5pt,#1},
+  hdr/.style={font=\footnotesize\bfseries,text=grisM},
+  rt/.style={fill=white,text=#1,rounded corners=1.5pt,font=\scriptsize\bfseries,inner sep=1.5pt},
+  out/.style={draw=#1,line width=.9pt,fill=white,rounded corners=2pt,align=left,text width=2.95cm,minimum height=0.8cm,inner sep=3pt,font=\footnotesize},
+  dest/.style={fill=#1,text=white,rounded corners=5pt,align=center,text width=1.7cm,minimum height=0.42cm,inner sep=2pt,font=\footnotesize\bfseries},
+  fo/.style={-{Latex[length=2.2mm]},line width=1.2pt,#1},
+  jd/.style={circle,fill=#1,inner sep=0pt,minimum size=3.2pt},
+  bus/.style={draw=#1,fill=#1!15,line width=.9pt,rounded corners=2pt,font=\scriptsize\bfseries,text=#1!80!black,inner sep=1pt},
+  halo/.style={preaction={draw=white,line width=3.6pt,-}},
+  card/.style={draw=#1,line width=.8pt,rounded corners=2pt,fill=white,text width=5.65cm,inner sep=3pt,align=left,font=\fontsize{6}{7.1}\selectfont},
+  ptit/.style={font=\small\bfseries,anchor=west},
+  num/.style={circle,fill=#1,text=white,font=\small\bfseries,inner sep=1.2pt,minimum size=0.48cm},
+  kc/.style={draw=#1,line width=.8pt,rounded corners=2pt,fill=white,align=left,inner sep=3pt,font=\fontsize{6.2}{7.4}\selectfont},
+  kt/.style={font=\fontsize{6.6}{7.8}\selectfont\bfseries,text=#1},
+  blq/.style={draw=#1,line width=1.1pt,fill=white,rounded corners=2pt,align=center,font=\small,inner sep=3pt,minimum height=0.95cm},
+  sm/.style={circle,draw=#1,line width=1.1pt,fill=white,inner sep=0pt,minimum size=0.5cm,font=\small\bfseries},
+  ar/.style={-{Latex[length=2.3mm]},line width=1.2pt,#1},
+  % ---- lámina 2
+  band/.style={fill=#1,draw=none,rounded corners=4pt},
+  bl/.style={draw=#1,line width=1.1pt,fill=white,rounded corners=2pt,align=center,font=\scriptsize,inner sep=2pt},
+  pl/.style={draw=gray!60!black,line width=.7pt,fill=white,rounded corners=2pt,align=center,font=\scriptsize,inner sep=1.5pt},
+  sT/.style={-{Latex[length=1.9mm]},line width=1.1pt,cT},
+  sL/.style={-{Latex[length=1.9mm]},line width=1.1pt,cL,densely dashed},
+  sS/.style={-{Latex[length=1.9mm]},line width=1.0pt,cS},
+  sP/.style={-{Latex[length=1.9mm]},line width=1.0pt,cP},
+  med/.style={-{Latex[length=1.9mm]},line width=.8pt,gray!60!black,densely dashed},
+  lab/.style={font=\scriptsize},
+  house/.pic={\fill[gray!70] (-0.13,0) rectangle (0.13,0.2); \fill[gray!85!black] (-0.17,0.2) -- (0,0.34) -- (0.17,0.2) -- cycle;},
+}
+
+\begin{document}
+
+% =====================================================================
+%  LÁMINA 1 — NIVELES ACTUALIZADOS
+% =====================================================================
+\begin{frame}{Niveles de control: qué mide, qué decide y a quién informa}
+  \vspace{-0.28cm}
+  \centering
+  \resizebox{!}{6.25cm}{%
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[hdr] at (1.3,9.55) {NIVEL};
+    \node[hdr] at (5.2,9.55) {1.\; MIDE O RECIBE};
+    \node[hdr] at (9.55,9.55) {2.\; DECIDE};
+    \node[hdr] at (13.25,9.55) {3.\; INFORMA (variable)};
+    \node[hdr] at (16.35,9.55) {4.\; A QUIÉN};
+    \foreach \y in {7.2,5.0,2.8}{\draw[gray!30,line width=.5pt] (0,\y) -- (17.3,\y);}
+
+    % ================= TERCIARIO =================
+    \node[tag=cT] (gT) at (1.3,8.2) {\textbf{TERCIARIO}\\[1pt] uno, central\\ cada 15 min\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cT}{PC host}}};
+    \node[ent] (eT) at (5.2,8.2) {%
+      \textcolor{cS}{$\mathcal E_k$: envolvente de cada MR}\\
+      \textcolor{cS}{$E_k$: energía actual de cada MR}\\
+      \hfill\textcolor{cS}{$\leftarrow$ secundario, vía IC}\\
+      $c(t)$: tarifa\\
+      $\hat P_{\mathrm{cl},\phi}$: demanda no gestionada};
+    \node[dec=cT] (T) at (9.55,8.2) {\textbf{Solo energía}\\[2pt]
+      mín.\ costo de compra\\ ventana $H=12$ h\\ plan y reserva dentro\\ de cada envolvente};
+    \node[out=cT] (oT1) at (13.25,8.67) {$P^*_k$\\ {\scriptsize plan de potencia}};
+    \node[out=cT] (oT2) at (13.25,7.73) {$r^{\downarrow}_k,\;r^{\uparrow}_k$\\ {\scriptsize reserva para el balance}};
+    \node[dest=cP] (dT1) at (16.35,8.67) {IC$_k$};
+    \node[dest=cP] (dT2) at (16.35,7.98) {IC$_k$};
+    \node[dest=cL] (dT3) at (16.35,7.45) {Lazo rápido};
+    \node[font=\scriptsize,text=grisM] at (16.35,7.05) {(total por fase $R_\phi$)};
+
+    % ================= LAZO RÁPIDO =================
+    \node[tag=cL] (gL) at (1.3,6.1) {\textbf{LAZO RÁPIDO}\\[1pt] uno por fase\\ cada $\sim$1 s\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cL}{controlador}}};
+    \node[ent] (eL) at (5.2,6.1) {%
+      $P_{h,a},\,P_{h,b},\,P_{h,c}$: potencia de\\ cada fase medida en la cabecera\\[3pt]
+      \textcolor{cT}{$R^{\uparrow}_\phi,\,R^{\downarrow}_\phi$: reserva de la fase}\\
+      \hfill\textcolor{cT}{$\leftarrow$ terciario}};
+    \node[dec=cL] (L) at (9.55,6.1) {\textbf{Solo balance}\\[1pt]
+      iguala las 3 fases\\ $e_\phi=P_{h,\phi}-\bar P_h$\\ PI limitado por $R_\phi$};
+    \node[out=cL] (oL1) at (13.25,6.35) {$u_\phi=\Delta P_\phi/R_\phi$\\ {\scriptsize fracción de reserva a usar}};
+    \node[dest=cP] (dL1) at (16.35,6.35) {IC de la fase $\phi$};
+    \node[font=\scriptsize,text=usachR!85!black,align=center] at (14.8,5.5) {no habla con secundarios ni DER};
+
+    % ================= SECUNDARIO =================
+    \node[tag=cS] (gS) at (1.3,3.9) {\textbf{SECUNDARIO}\\[1pt] uno por MR\\ segundos\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cS}{controlador}}};
+    \node[ent] (eS) at (5.2,3.9) {%
+      $V_{dc,k}$: tensión de su barra DC\\
+      SoC de su BESS y de su EV\\
+      $P_{\mathrm{PV},k}$ disponible\\
+      perfil conocido de FV, carga y EV};
+    \node[dec=cS] (S) at (9.55,3.9) {Restaura $V_{dc,k}$\\ reparte entre sus DER\\ cuida límites BESS/EV\\ calcula su envolvente\\
+      \textcolor{usachR}{no ve la cabecera}};
+    \node[out=cS] (oS1) at (13.25,4.37) {$V^*_{dc,d}$\\ {\scriptsize referencia de cada DER $d$}};
+    \node[out=cS] (oS2) at (13.25,3.43) {$\mathcal E_k,\;E_k$\\ {\scriptsize envolvente y energía}};
+    \node[dest=cP] (dS1) at (16.35,4.37) {Primario DER};
+    \node[dest=cT] (dS2) at (16.35,3.43) {Terciario};
+    \node[font=\scriptsize,text=grisM] at (16.35,3.0) {(vía su IC)};
+
+    % ================= PRIMARIO =================
+    \node[tag=cP] (gP) at (1.3,1.7) {\textbf{PRIMARIO}\\[1pt] uno por convertidor\\ milisegundos\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cP}{controlador}}\\[1pt] {\scriptsize potencia en sim.\ RT}};
+    \node[ent] (eP) at (5.2,1.7) {%
+      \textbf{DER}: $V_{dc,k}$ y \textcolor{cS}{su ref.\ $\leftarrow$ secundario}\\[3pt]
+      \textbf{IC$_k$}: $P_{\mathrm{ref},k}=\textcolor{cT}{P^*_k}+\textcolor{cL}{u_\phi}\,\textcolor{cT}{r_k}$\\
+      \phantom{\textbf{IC$_k$}: }{\scriptsize ($r^{\uparrow}_k$ si $u_\phi\ge0$; $r^{\downarrow}_k$ si $u_\phi<0$)}};
+    \node[dec=cP] (P) at (9.55,1.7) {\textbf{DER}: droop $V_{dc}$--$P$\\[3pt]
+      \textbf{IC$_k$}: grid-following\\ sigue $P_{\mathrm{ref},k}$\\ ($Q_{\mathrm{ref},k}=0$)};
+    \node[out=cP] (oP1) at (13.25,2.17) {DER: $i_d$\\ {\scriptsize corriente hacia la barra DC}};
+    \node[out=cP] (oP2) at (13.25,1.23) {IC$_k$: $p_k$\\ {\scriptsize potencia inyectada}};
+    \node[dest=grisM] (dP1) at (16.35,2.17) {Barra DC};
+    \node[dest=grisM] (dP2) at (16.35,1.23) {Fase $\phi$};
+    \node[font=\scriptsize,text=grisM] at (16.35,0.7) {(la mide la cabecera)};
+
+    % ---- flechas
+    \foreach \n in {T,L,S,P}{\draw[fin] (e\n.east) -- (\n.west);}
+    \foreach \n/\c/\yc in {T/cT/8.2,S/cS/3.9,P/cP/1.7}{
+      \draw[line width=1.2pt,\c] (\n.east) -- (11.4,\yc);
+      \draw[fo=\c] (11.4,\yc) |- (o\n1.west);
+      \draw[fo=\c] (11.4,\yc) |- (o\n2.west);
+      \node[jd=\c] at (11.4,\yc) {};
+    }
+    \draw[fo=cL] (L.east) -- (11.4,6.1) |- (oL1.west);
+    \draw[fo=cT] (oT1.east) -- (dT1.west);
+    \draw[line width=1.2pt,cT] (oT2.east) -- (15.2,7.73);
+    \draw[fo=cT] (15.2,7.73) |- (dT2.west);
+    \draw[fo=cT] (15.2,7.73) |- (dT3.west);
+    \node[jd=cT] at (15.2,7.73) {};
+    \draw[fo=cL] (oL1.east) -- (dL1.west);
+    \draw[fo=cS] (oS1.east) -- (dS1.west);
+    \draw[fo=cS] (oS2.east) -- (dS2.west);
+    \draw[fo=cP] (oP1.east) -- (dP1.west);
+    \draw[fo=cP] (oP2.east) -- (dP2.west);
+  \end{tikzpicture}}
+
+  \vspace{2pt}
+  {\fontsize{6.4}{7.5}\selectfont\raggedright
+  \textbf{Roles separados:} el terciario asigna la energía y la reserva; el lazo rápido despacha esa reserva para igualar las fases (como una reserva de regulación). Cada MR informa lo que puede ofrecer a través de su IC.\par}
+\end{frame}
+
+% =====================================================================
+%  LÁMINA 2 — FORMULACIÓN DEL TERCIARIO
+% =====================================================================
+\begin{frame}{Terciario: objetivo, envolvente que recibe y reserva que asigna}
+  \vspace{-0.32cm}
+  \begin{columns}[T,onlytextwidth]
+    % ---------------- izquierda: lo que recibe y cómo se dimensiona la reserva
+    \column{.445\textwidth}
+    \begin{tikzpicture}\node[kc=cS,text width=5.45cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{usachTd}1. Lo que informa cada MR $k$ (envolvente)}\\[2pt]
+      $\mathcal E_k(t)=\{P^{\min}_k,\,P^{\max}_k,\,W^{\min}_k,\,W^{\max}_k\}(t)$\\[2pt]
+      $\bullet$ \textbf{Potencia}: límites del IC, BESS y EV, ya descontado el pronóstico de FV y carga.\\
+      $\bullet$ \textbf{Energía}: $W$ = energía acumulada que entrega el IC. Sus límites vienen de los de BESS y EV (incluye $E_{\mathrm{req}}$ del EV):\\[1pt]
+      \hspace*{3pt}$W^{\max}_k(t)=E_k(0)+\!\sum\!(\hat P_{\mathrm{PV}}-\hat P_{L})\Delta t-E^{\min}_k$\\
+      \hspace*{3pt}$W^{\min}_k(t)=E_k(0)+\!\sum\!(\hat P_{\mathrm{PV}}-\hat P_{L})\Delta t-E^{\max}_k$\\[1pt]
+      $\bullet$ \textbf{Pronóstico simple}: perfil conocido $+$ error acotado $\bar\varepsilon_k$.\\
+      {\color{grisM}Ejemplo numérico en la lámina de respaldo.}};\end{tikzpicture}\\[3pt]
+    \begin{tikzpicture}\node[kc=cL,text width=5.45cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{verdeL}3. Cuánta reserva pide cada fase}\\[2pt]
+      Demanda no gestionada, sin medir clientes: $P_{\mathrm{cl},\phi}=P_{h,\phi}+\sum_{k\in\mathcal N_\phi}P_{\mathrm{IC},k}$\\
+      Desviación: $D_\phi=\hat P_{\mathrm{cl},\phi}-\tfrac13\sum_\psi \hat P_{\mathrm{cl},\psi}$\\
+      $R^{\uparrow}_\phi=[D_\phi]^{+}+m,\qquad R^{\downarrow}_\phi=[-D_\phi]^{+}+m$\\
+      {\color{grisM} la fase cargada pide reserva para entregar; las livianas, para absorber.}};\end{tikzpicture}
+
+    % ---------------- derecha: el problema
+    \column{.54\textwidth}
+    \begin{tikzpicture}\node[kc=cT,text width=6.7cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{cT!85!black}2. Problema del terciario (cada 15 min, horizonte $H=12$ h)}\\[3pt]
+      \textbf{Variables} por MR $k$ y paso $t$: plan $P^*_k$, reserva $r^{\uparrow}_k,r^{\downarrow}_k\ge0$\\[3pt]
+      \textbf{Objetivo: solo energía}\\[1pt]
+      \hspace*{8pt}$\displaystyle\min\ \sum_{t\in\mathcal T_H} c(t)\,P^{+}_{\mathrm{imp}}(t)\,\Delta t,\qquad P_{\mathrm{imp}}=\hat P_{L,\mathrm{tot}}-\sum_k P^*_k$\\[2pt]
+      {\color{grisM}\hspace*{8pt}(con tarifa plana equivale a minimizar la energía comprada)}\\[4pt]
+      \textbf{Restricciones}\\[2pt]
+      \hspace*{8pt}(a) potencia:\quad $P^{\min}_k+r^{\downarrow}_k\ \le\ P^*_k\ \le\ P^{\max}_k-r^{\uparrow}_k$\\[3pt]
+      \hspace*{8pt}(b) energía, con $W^*_k(t)=\sum_{s\le t}P^*_k(s)\,\Delta t$:\\[1pt]
+      \hspace*{14pt}$W^{\min}_k+r^{\downarrow}_k\tau+\bar\varepsilon_k\,\le\, W^*_k\,\le\, W^{\max}_k-r^{\uparrow}_k\tau-\bar\varepsilon_k$\\[3pt]
+      \hspace*{8pt}(c) reserva por fase:\\[1pt]
+      \hspace*{14pt}$\sum_{k\in\mathcal N_\phi}r^{\uparrow}_k\ge R^{\uparrow}_\phi,\qquad \sum_{k\in\mathcal N_\phi}r^{\downarrow}_k\ge R^{\downarrow}_\phi$\\[3pt]
+      {\color{grisM}$\tau$: tiempo que debe sostenerse la reserva (p.\ ej.\ 15 min). Problema lineal: óptimo global en segundos.}};\end{tikzpicture}\\[3pt]
+    \begin{tikzpicture}\node[kc=cP,text width=6.7cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{cP}4. Qué entrega y qué pasa si una MR se equivoca}\\[2pt]
+      $\bullet$ A cada IC$_k$: $P^*_k$ y $[r^{\downarrow}_k,r^{\uparrow}_k]$; al lazo rápido: $R_\phi=\sum r_k$. Replanifica cada 15 min con $E_k$ real.\\
+      $\bullet$ Error de pronóstico: el IC mantiene su consigna y la BESS absorbe la diferencia $\Rightarrow$ \textbf{consume reserva de energía} ($\bar\varepsilon_k$ en (b)).};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+%  LÁMINA 3 — REGLA DEL LAZO RÁPIDO
+% =====================================================================
+\begin{frame}{Lazo rápido: qué mide, cómo corrige por fase y cómo reparte}
+  \vspace{-0.30cm}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\small]
+    % zonas
+    \fill[cL!7,rounded corners=4pt] (1.6,0.2) rectangle (13.05,3.6);
+    \node[font=\small\bfseries,cL!80!black,anchor=north west] at (1.7,3.55) {Lazo rápido de la fase $\phi$ (en la cabecera, cada $\sim$1 s) \;—\; uno por fase};
+    \fill[cP!7,rounded corners=4pt] (13.35,-0.55) rectangle (18.6,4.3);
+    \node[font=\small\bfseries,cP,anchor=south west] at (13.45,-0.5) {En cada IC de la fase $\phi$};
+    % cabecera
+    \node[blq=gray!60!black,text width=1.55cm] (M) at (0.75,1.75) {Cabecera\\ mide $P_{h,\phi}$\\ $\phi=a,b,c$};
+    \node[blq=cL,text width=1.5cm] (Av) at (3.15,1.0) {promedio\\ $\bar P_h=\tfrac13\sum_\psi P_{h,\psi}$};
+    \node[sm=cL] (E) at (4.95,2.35) {$\Sigma$};
+    \node[font=\scriptsize,anchor=south east] at (4.8,2.55) {$+$};
+    \node[font=\scriptsize,anchor=north west] at (5.0,2.05) {$-$};
+    \node[blq=cL,text width=2.6cm] (PI) at (7.25,2.35) {PI con anti-windup\\ limitado a\\ $[-R^{\downarrow}_\phi,\;R^{\uparrow}_\phi]$};
+    \node[blq=cL,text width=1.75cm] (Nor) at (11.15,2.35) {normaliza\\ $u_\phi=\dfrac{\Delta P_\phi}{R_\phi}$};
+    % ICs
+    \foreach \y/\k in {3.35/1,1.85/2,0.35/N}{
+      \node[blq=cP,text width=1.15cm,minimum height=0.7cm] (X\k) at (14.4,\y) {$\times\, r_{\k}$};
+      \node[sm=cP] (S\k) at (16.05,\y) {$+$};
+      \node[blq=cP,text width=0.9cm,minimum height=0.7cm] (I\k) at (17.75,\y) {IC$_{\k}$};
+      \draw[ar=cP] (X\k) -- node[below,font=\scriptsize]{$\Delta P_{\k}$} (S\k);
+      \draw[ar=cP] (S\k) -- (I\k);
+      \draw[ar=cT] (16.05,\y+0.62) -- (S\k);
+      \node[font=\scriptsize,cT!85!black,anchor=east] at (15.98,\y+0.55) {$P^*_{\k}$};
+    }
+    \node[font=\small,cP] at (14.4,1.15) {$\vdots$};
+    % flechas
+    \draw[ar=gray!60!black] (M.east) ++(0,0.6) -| node[pos=.25,above,font=\scriptsize]{$P_{h,\phi}$} (E.north);
+    \draw[ar=gray!60!black] (M.east) ++(0,-0.75) -- (Av.west);
+    \draw[ar=cL] (Av.east) -| (E.south);
+    \draw[ar=cL] (E) -- node[above,font=\scriptsize]{$e_\phi$} (PI);
+    \draw[ar=cL] (PI) -- node[above,font=\scriptsize]{$\Delta P_\phi$} (Nor);
+    \draw[line width=1.3pt,cL,densely dashed] (Nor.east) -- (13.6,2.35);
+    \draw[line width=1.3pt,cL,densely dashed] (13.6,0.35) -- (13.6,3.35);
+    \foreach \k in {1,2,N}{\draw[ar=cL,densely dashed] (13.6,0 |- X\k) -- (X\k.west);}
+    \node[jd=cL] at (13.6,2.35) {};
+    \node[font=\scriptsize,cL!80!black,align=center] at (12.45,1.25) {una sola señal\\ por fase};
+    \draw[ar=cT,densely dotted] (11.15,0.55) node[below,font=\scriptsize,cT!85!black]{$R_\phi=\sum r_k$ (del terciario)} -- (Nor.south);
+  \end{tikzpicture}}
+
+  \vspace{3pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{.325\textwidth}
+    \begin{tikzpicture}\node[kc=gray!60!black,text width=3.85cm,minimum height=2.05cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries 1. Qué mide}\\[2pt]
+      Solo la potencia de cada fase en la cabecera. No habla con secundarios ni DER: los DER se enteran por su bus DC.};\end{tikzpicture}
+    \column{.335\textwidth}
+    \begin{tikzpicture}\node[kc=cL,text width=3.95cm,minimum height=2.05cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{verdeL} 2. Cómo calcula}\\[2pt]
+      $\sum_\phi e_\phi=0\Rightarrow\sum_\phi\Delta P_\phi=0$: mueve potencia entre fases sin cambiar la compra total, así que \textbf{no deshace el plan}.\\
+      Ej.: fase $a$ +6 kW $\Rightarrow e=(4,-2,-2)$: $a$ entrega 4 kW, $b$ y $c$ absorben 2 kW c/u.};\end{tikzpicture}
+    \column{.325\textwidth}
+    \begin{tikzpicture}\node[kc=cP,text width=3.85cm,minimum height=2.05cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{cP} 3. Cómo reparte}\\[2pt]
+      $\Delta P_k=u_\phi\,r_k$ (cada IC usa su propia reserva). Aporta en proporción a lo que le asignó el terciario. $|u_\phi|=1$: reserva agotada.\\
+      $Q$: no se usa ($R>X$ en BT).};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+%  LÁMINA 4 — RESPALDO: EJEMPLO DE ENVOLVENTE
+% =====================================================================
+\begin{frame}{Respaldo: ejemplo numérico de una envolvente}
+  \vspace{-0.30cm}
+  \begin{columns}[T,onlytextwidth]
+    \column{.44\textwidth}
+    \begin{tikzpicture}\node[kc=cS,text width=5.4cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{usachTd}Micro-red de ejemplo}\\[2pt]
+      BESS con 6 kWh a las 12:00, debe quedar entre 2 y 9 kWh; entrega o absorbe hasta 4 kW. IC de $\pm$5 kW. Convención: $P>0$ = el IC entrega a la red.};\end{tikzpicture}\\[3pt]
+    {\fontsize{6.2}{7.3}\selectfont\renewcommand{\arraystretch}{1.25}\setlength\tabcolsep{3.5pt}
+    \rowcolors{2}{usachOl}{white}
+    \begin{tabular}{@{}lccc@{}}
+      \rowcolor{usachO}\textcolor{white}{\textbf{Hora}} & \textcolor{white}{\textbf{FV $-$ carga}} & \textcolor{white}{\textbf{$[P^{\min},P^{\max}]$}} & \textcolor{white}{\textbf{$[W^{\min},W^{\max}]$ al final}}\\
+      12--13 & $+3$ kW & $[-1,\,+5]$ kW & $[0,\,7]$ kWh\\
+      13--14 & $+2$ kW & $[-2,\,+5]$ kW & $[2,\,9]$ kWh\\
+      14--15 & $-2$ kW & $[-5,\,+2]$ kW & $[0,\,7]$ kWh\\
+    \end{tabular}}\\[4pt]
+    \begin{tikzpicture}\node[kc=cT,text width=5.4cm]{%
+      {\fontsize{6.6}{7.8}\selectfont\bfseries\color{cT!85!black}Cómo se lee}\\[2pt]
+      $\bullet$ \textbf{Potencia}: (FV $-$ carga) $\pm$ 4 kW de la BESS, con tope del IC.\\
+      $\bullet$ \textbf{Energía}: a las 14:00 el IC debe haber entregado \textbf{al menos 2 kWh} (si no, el FV llena la BESS sobre 9) y \textbf{a lo más 9 kWh} (si no, baja de 2).\\
+      $\bullet$ Plan 2, 2, $-1$ kW: \textbf{cabe} (BESS en 7, 7 y 6 kWh).\\
+      $\bullet$ Plan 5 kW de 12 a 14: cumple potencia, pero a las 14:00 entrega 10 kWh $>$ 9: la BESS quedaría en \textbf{1 kWh}. \textbf{No cabe}.};\end{tikzpicture}
+
+    \column{.54\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1.5cm,y=0.31cm,font=\fontsize{6}{7}\selectfont]
+      \fill[usachT!15] (0,-3) -- (1,0) -- (2,2) -- (3,0) -- (3,7) -- (2,9) -- (1,7) -- (0,4) -- cycle;
+      \draw[usachT,line width=1pt] (0,4) -- (1,7) -- (2,9) -- (3,7);
+      \draw[usachT,line width=1pt] (0,-3) -- (1,0) -- (2,2) -- (3,0);
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,-4) -- (3.3,-4);
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,-4) -- (0,11) node[above,align=center]{$W$ [kWh]\\ energía entregada por el IC};
+      \foreach \x/\l in {0/12:00,1/13:00,2/14:00,3/15:00}{\draw[gray!60] (\x,-4) -- (\x,-4.3) node[below]{\l};}
+      \foreach \v in {-2,0,2,4,6,8,10}{\draw[gray!60] (0,\v) -- (-0.05,\v) node[left]{\v};}
+      \draw[gray!40,dashed] (0,0) -- (3,0);
+      \draw[cT,line width=1.5pt] (0,0) -- (1,2) -- (2,4) -- (3,3);
+      \foreach \x/\y in {0/0,1/2,2/4,3/3}{\fill[cT] (\x,\y) circle (1.6pt);}
+      \draw[usachR,line width=1.3pt,densely dashed] (0,0) -- (1,5) -- (2,10);
+      \fill[usachR] (2,10) circle (2pt);
+      \node[usachR,anchor=west,align=left] at (2.06,10.2) {10 kWh $>$ 9:\\ no cabe};
+      \node[usachTd,anchor=west] at (3.03,7) {$W^{\max}$};
+      \node[usachTd,anchor=west] at (3.03,0) {$W^{\min}$};
+      \node[cT!85!black,anchor=west] at (3.03,3) {plan que cabe};
+      \node[usachTd,align=center] at (2.55,5.4) {envolvente\\ de energía};
+    \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+\end{document}

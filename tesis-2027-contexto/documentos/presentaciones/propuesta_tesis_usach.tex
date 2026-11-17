@@ -1,0 +1,912 @@
+% =====================================================================
+%  Propuesta de tema de tesis — Reunión con Prof. Enrique Espina (26-10-2026)
+%  Felipe Gajardo Ávalos · Magíster en Ciencias de la Ingeniería, USACH
+%  Formato: plantilla de clases de Circuitos Eléctricos I (USACH)
+%  Compilar con XeLaTeX (dos pasadas): xelatex propuesta_tesis_usach.tex
+%  Requiere en fig/: fondo_usach_portada.png y fondo_usach_contenido.png
+%  Láminas R0–R10: respaldo para preguntas (enlazadas con botones)
+% =====================================================================
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[aspectratio=169,10pt,t]{beamer}
+
+\usefonttheme{professionalfonts}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,array,tabularx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing,shapes.geometric}
+\graphicspath{{fig/}}
+
+% ------------------------------- Colores USACH -----------------------
+\definecolor{usachT}{HTML}{009688}
+\definecolor{usachTd}{HTML}{007B73}
+\definecolor{usachO}{HTML}{E77500}
+\definecolor{usachOl}{HTML}{FDF0E3}
+\definecolor{usachR}{HTML}{E53935}
+\definecolor{faseA}{HTML}{C0392B}
+\definecolor{faseB}{HTML}{2E8B57}
+\definecolor{faseC}{HTML}{1F5FAF}
+
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{structure}{fg=usachT}
+\setbeamercolor{frametitle}{fg=usachT}
+\setbeamercolor{alerted text}{fg=usachR}
+\setbeamercolor{block title}{fg=white,bg=usachT}
+\setbeamercolor{block body}{fg=black,bg=white}
+\setbeamercolor{block title alerted}{fg=usachR,bg=}
+\setbeamercolor{block body alerted}{fg=black,bg=}
+\setbeamercolor{block title example}{fg=white,bg=usachO}
+\setbeamercolor{block body example}{fg=black,bg=white}
+\setbeamercolor{button}{bg=usachO,fg=white}
+\setbeamertemplate{blocks}[default]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{usachT}\scriptsize$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{usachT}\tiny$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{usachT}\bfseries\insertenumlabel.}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamerfont{block title}{size=\normalsize}
+\setbeamerfont{button}{size=\tiny}
+
+\setbeamersize{text margin left=2.75cm,text margin right=0.55cm}
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_contenido.png}}
+\setbeamertemplate{headline}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[fill=usachT!55,text=white,rounded corners=1.5pt,font=\tiny,inner sep=2pt,anchor=north east]
+      at ([xshift=-0.22cm,yshift=-0.16cm]current page.north east) {\insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}}
+\setbeamertemplate{frametitle}{\vskip0.42cm\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par\vskip0.12cm}
+\setbeamertemplate{footline}{\vbox to 0.72cm{}}
+
+\newcommand{\thead}{\rowcolor{usachO}}
+\newcommand{\Th}[1]{\textcolor{white}{\textbf{#1}}}
+% Botón a lámina de respaldo / volver al mapa
+\newcommand{\resp}[2]{\hyperlink{#1}{\beamerbutton{#2}}}
+\newcommand{\volver}{\begin{tikzpicture}[remember picture,overlay]\node[anchor=south east] at ([xshift=-0.3cm,yshift=0.95cm]current page.south east){\hyperlink{mapa}{\beamerreturnbutton{Volver al mapa de respaldo}}};\end{tikzpicture}}
+
+% ------------------------------- Macros -------------------------------
+\newcommand{\Pic}[1]{P_{\mathrm{IC},#1}}
+\newcommand{\Qic}[1]{Q_{\mathrm{IC},#1}}
+\newcommand{\PB}[1]{P_{\mathrm{B},#1}}
+\newcommand{\SOC}[1]{\mathrm{SOC}_{#1}}
+\newcommand{\SOCw}{\overline{\mathrm{SOC}}_{w}}
+\newcommand{\Nset}[1]{\mathcal{N}_{#1}}
+
+\tikzset{
+  blk/.style={draw,rounded corners=2pt,minimum height=0.9cm,align=center,font=\footnotesize,line width=.5pt},
+  ac/.style={blk,fill=gray!12},
+  ic/.style={blk,fill=usachT!10,draw=usachT},
+  co/.style={blk,fill=usachO!12,draw=usachO},
+  pw/.style={{Latex[length=2mm]}-{Latex[length=2mm]},line width=.7pt},
+  sg/.style={-{Latex[length=2mm]},dashed,line width=.6pt,usachO},
+  fl/.style={-{Latex[length=2mm]},line width=.7pt},
+  card/.style={draw=usachT,line width=.6pt,rounded corners=2pt,fill=white,align=left,text width=#1,inner sep=5pt,font=\footnotesize},
+  house/.pic={\fill[#1!75] (-0.13,0) rectangle (0.13,0.2); \fill[#1] (-0.17,0.2) -- (0,0.36) -- (0.17,0.2) -- cycle;},
+}
+
+\begin{document}
+
+% =====================================================================
+%  PORTADA
+% =====================================================================
+{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_portada.png}}
+\setbeamertemplate{headline}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[text=white,font=\small,anchor=north west] at ([xshift=0.45cm,yshift=-0.35cm]current page.north west) {26 de octubre de 2026};
+    \node[fill=usachT!55,text=white,rounded corners=1.5pt,font=\tiny,inner sep=2pt,anchor=north east]
+      at ([xshift=-0.22cm,yshift=-0.16cm]current page.north east) {\insertframenumber/\inserttotalframenumber};
+    \node[text=white,align=center,anchor=north,text width=14.5cm] at ([yshift=-4.55cm]current page.north) {%
+      {\fontsize{15}{17}\selectfont Gestión jerárquica de un alimentador BT 3$\phi$-4W\\[1pt] con Micro-redes DC por fase}\\[4pt]
+      {\normalsize Propuesta de tema de tesis}\\[3pt]
+      {\scriptsize\bfseries Magíster en Ciencias de la Ingeniería, mención Electricidad}\\[3pt]
+      {\scriptsize\bfseries Estudiante: Felipe Gajardo Ávalos}\\[1pt]
+      {\scriptsize Profesor guía: Dr. Enrique Espina González}\\[1pt]
+      {\scriptsize Departamento de Ingeniería Eléctrica, USACH}};
+  \end{tikzpicture}
+\end{frame}
+}
+
+% =====================================================================
+\begin{frame}{Hoja de ruta}
+  \vspace{0.6cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \foreach \i/\t/\s in {1/{El problema}/{qué pasa hoy en BT},2/{De dónde viene}/{lo que se planteaba y lo que cambió},3/{La propuesta}/{escenario, nomenclatura, ecuaciones y problema},4/{Cómo se resuelve}/{tres ideas, arquitectura y formulación},5/{Plan}/{aporte, etapas y preguntas}}{
+      \pgfmathsetmacro{\x}{2.55*(\i-1)}
+      \node[circle,fill=usachT,text=white,font=\large\bfseries,minimum size=1.0cm] (c\i) at (\x,0) {\i};
+      \node[font=\footnotesize\bfseries,usachTd,align=center,text width=2.3cm] at (\x,-0.95) {\t};
+      \node[font=\scriptsize,align=center,text width=2.3cm,gray!70!black] at (\x,-1.6) {\s};
+    }
+    \foreach \i/\j in {1/2,2/3,3/4,4/5}{\draw[-{Latex[length=2mm]},usachO,line width=1pt] (c\i) -- (c\j);}
+  \end{tikzpicture}
+
+  \vspace{0.9cm}
+  \begin{tikzpicture}
+    \node[card=11cm,draw=usachO] {\textbf{\color{usachO}Qué busco hoy:} validar el tema, el foco y el alcance de la tesis, y acordar las decisiones de modelado antes de la revisión sistemática.};
+  \end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{1. El problema: un alimentador BT que queda cojo}
+  \begin{columns}[T,onlytextwidth]
+    \column{.55\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1.12cm,font=\scriptsize]
+      \node[ac,minimum width=0.9cm,minimum height=1.9cm,font=\scriptsize] (se) at (0,1.55) {S/E\\MT/BT};
+      \foreach \y/\c/\f in {2.35/faseA/a,1.85/faseB/b,1.35/faseC/c}{\draw[\c,line width=1.1pt] (0.45,\y) -- (6.4,\y) node[right]{$\f$};}
+      \draw[gray,line width=1.1pt] (0.45,0.85) -- (6.4,0.85) node[right]{$n$};
+      \foreach \x/\c/\y in {1.0/faseA/2.35,1.6/faseA/2.35,2.2/faseB/1.85,2.8/faseA/2.35,3.4/faseA/2.35,4.0/faseB/1.85,4.6/faseA/2.35,5.2/faseC/1.35,5.8/faseB/1.85}{
+        \draw[\c,line width=.5pt] (\x,\y) -- (\x,0.45);
+        \fill[\c] (\x,\y) circle (1pt);
+        \pic at (\x,0.05) {house=\c};
+        \draw[gray,line width=.4pt] (\x+0.08,0.85) -- (\x+0.08,0.4);
+      }
+      \draw[-{Latex[length=2.2mm]},usachR,line width=1.4pt] (5.6,0.68) -- node[below=1pt,font=\scriptsize\bfseries]{$I_n$} (0.7,0.68);
+      \node[font=\tiny,gray!70!black,align=center] at (3.4,-0.45) {5 casas en $a$, 3 en $b$, 1 en $c$: cada fase pide distinto, y cambia durante el día};
+    \end{tikzpicture}
+    \column{.43\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=0.95,font=\scriptsize]
+      \draw[gray!40,->] (-1.3,0) -- (2.4,0); \draw[gray!40,->] (0,-1.4) -- (0,1.3);
+      \draw[-{Latex[length=2mm]},faseA,line width=1.2pt] (0,0) -- (2,0) node[above left]{$I_a$};
+      \draw[-{Latex[length=2mm]},faseB,line width=1.2pt] (0,0) -- (-0.6,-1.04) node[left]{$I_b$};
+      \draw[-{Latex[length=2mm]},faseC,line width=1.2pt] (0,0) -- (-0.3,0.52) node[left]{$I_c$};
+      \draw[-{Latex[length=2mm]},usachR,line width=1.3pt,densely dashed] (0,0) -- (1.1,-0.52) node[below right]{$I_n$};
+    \end{tikzpicture}
+
+    \footnotesize\raggedright
+    Lo que \textbf{ve la subestación}: tres corrientes distintas, $I_n=I_a+I_b+I_c\ne0$ y secuencia negativa $I_2\neq 0$.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{1. ¿Por qué importa?}
+  \vspace{0.2cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[card=5.6cm] (a) at (0,0) {\textbf{\color{usachT}Neutro}\\ Corriente que no transporta energía útil: pérdidas, calentamiento y desplazamiento del neutro.};
+    \node[card=5.6cm] (b) at (6.2,0) {\textbf{\color{usachT}Transformador}\\ La fase más cargada limita: capacidad instalada desaprovechada en las otras dos.};
+    \node[card=5.6cm] (c) at (0,-1.75) {\textbf{\color{usachT}Tensión}\\ Secuencia negativa (VUF): calentamiento de motores y tensiones desiguales para los clientes.};
+    \node[card=5.6cm] (d) at (6.2,-1.75) {\textbf{\color{usachT}FV y EV monofásicos}\\ Se conectan donde cae el cliente, no donde conviene: el desbalance crece y cambia en el día.};
+  \end{tikzpicture}
+
+  \vspace{0.4cm}
+  \footnotesize\raggedright
+  \textbf{\color{usachO}Cómo se enfrenta hoy}
+  \begin{itemize}\setlength\itemsep{1pt}
+    \item Reconexión de clientes entre fases: manual, discreta, no sigue la variación diaria.
+    \item Compensadores (STATCOM, filtros activos): inversión adicional; con solo $Q$ no se corrige el desbalance de potencia activa. \resp{r2}{R2}
+  \end{itemize}
+  \textbf{Oportunidad:} las Micro-redes DC con batería \textbf{ya están} en cada fase y pueden mover $P$ y $Q$.
+\end{frame}
+
+% =====================================================================
+\begin{frame}{2. De dónde viene la idea}
+  \vspace{0.1cm}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    % Panel 1: planteamiento inicial
+    \node[font=\footnotesize\bfseries,usachTd] at (1.6,3.05) {Planteamiento inicial};
+    \foreach \x/\c/\f in {0.5/faseA/a,1.6/faseB/b,2.7/faseC/c}{\node[blk,draw=\c,fill=\c!10,minimum width=0.85cm,minimum height=0.6cm,font=\tiny] (i\f) at (\x,2.2) {IC$_\f$\\BESS};}
+    \draw[usachO,dashed,<->] (ia) -- (ib); \draw[usachO,dashed,<->] (ib) -- (ic);
+    \node[align=center,text width=3.2cm] at (1.6,1.2) {Una Micro-red por fase. Consenso para \textbf{igualar} $P_{\mathrm{IC}}$ entre fases, con corrección por SOC.};
+    % flecha 1
+    \draw[-{Latex[length=2.5mm]},usachO,line width=1.2pt] (3.35,2.0) -- (3.85,2.0);
+    % Panel 2: lo que aprendí
+    \node[font=\footnotesize\bfseries,usachR] at (5.85,3.05) {Lo que aprendí};
+    \node[draw=usachR,rounded corners=2pt,fill=white,align=left,text width=3.2cm,inner sep=4pt] at (5.85,1.75) {%
+      \textbf{1.} Las baterías solo se intercambiaban energía: $\sum_i\PB{i}\equiv0$.\\[2pt]
+      \textbf{2.} En régimen permanente $P_{\mathrm{IC}}\to P_{\mathrm{net}}$: la ley solo \textbf{filtraba}.\\[2pt]
+      \textbf{3.} Sin desbalance previo, mover energía entre fases lo \textbf{crea}.};
+    \draw[-{Latex[length=2.5mm]},usachO,line width=1.2pt] (7.85,2.0) -- (8.45,2.0);
+    % Panel 3: nuevo planteamiento
+    \node[font=\footnotesize\bfseries,usachTd] at (10.4,3.05) {Nuevo planteamiento};
+    \node[blk,fill=usachO!12,draw=usachO,minimum width=2.9cm,minimum height=0.45cm,font=\tiny] (cab) at (10.4,2.55) {cabecera: gestión de $P_h$, $I_0$, $I_2$};
+    \foreach \x/\c/\n in {9.3/faseA/2,10.4/faseB/1,11.5/faseC/3}{
+      \foreach \k in {1,...,\n}{\fill[\c!70] (\x-0.3+0.21*\k,1.75) rectangle ++(0.17,0.32);}
+      \draw[\c,line width=.8pt] (\x,2.3) -- (\x,2.12);
+    }
+    \node[align=center,text width=3.3cm] at (10.4,1.2) {Red \textbf{ya desbalanceada} por clientes. Varias Micro-redes por fase compensan lo que ve la S/E.};
+  \end{tikzpicture}}
+
+  \vspace{0.2cm}
+  \begin{tikzpicture}
+    \node[card=12cm] {\textbf{\color{usachT}Se conserva:} Micro-redes DC con IC monofásico, control distribuido por consenso y balance de SOC. \textbf{\color{usachO}Cambia:} el objetivo se mide en la cabecera y cada nivel de control tiene un solo rol. \hfill\resp{r3}{R3: detalle}};
+  \end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{3. Escenario propuesto}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[ac,minimum width=1.2cm,minimum height=.75cm] (se) at (0.55,3.0) {\textbf{S/E}\\[-1pt]\scriptsize MT/BT};
+    \node[ac,minimum width=11.6cm,minimum height=.6cm] (bus) at (7.6,3.0) {\textbf{Alimentador BT 3$\phi$-4W} ($a,b,c,n$), ya desbalanceado por clientes monofásicos};
+    \draw[line width=.9pt] (se.east) -- (bus.west);
+    \node[circle,draw,fill=white,inner sep=1pt,font=\tiny] (m) at (1.48,3.0) {M};
+    \node[co,minimum width=4.6cm,minimum height=.7cm] (ems) at (4.4,4.5) {\textbf{Gestión de cabecera} (nivel terciario)};
+    \draw[sg] (m.north) |- node[pos=.25,left,font=\tiny,black]{$S_{h,\phi}$} (ems.west);
+    \node[font=\scriptsize,anchor=west] (cons) at (7.6,4.5) {consignas de $P$ y $Q$ por fase};
+    \draw[sg] (ems.east) -- (cons.west);
+    \foreach \x/\e/\cx/\f/\c in {2.0/5.3/3.65/a/faseA, 5.8/7.6/6.75/b/faseB, 8.1/13.4/10.75/c/faseC}{
+      \draw[\c,line width=1pt] (\x,2.7) -- (\x,1.3) -- (\e,1.3);
+      \node[\c,font=\tiny,anchor=south west] at (\x,1.3) {fase $\f$--$n$};
+      \node[blk,fill=gray!8,minimum width=1.7cm,minimum height=.5cm,font=\scriptsize] (cl\f) at (\cx+0.25,1.95) {Clientes 1$\phi$};
+      \draw[\c,line width=.7pt] (cl\f.south) -- (cl\f.south |- 0,1.3);
+    }
+    \foreach \x/\k/\c in {2.75/1/faseA, 4.55/2/faseA, 6.75/3/faseB, 8.95/4/faseC, 10.75/5/faseC, 12.55/6/faseC}{
+      \node[blk,draw=\c,fill=\c!8,minimum width=1.3cm,minimum height=.85cm,font=\tiny] (mr\k) at (\x,0.4) {DC-MR$_\k$\\IC$_\k$ · FV · BESS};
+      \draw[\c,line width=.7pt,{Latex[length=1.5mm]}-{Latex[length=1.5mm]}] (mr\k.north) -- (\x,1.3);
+    }
+    \draw[usachO,dashed,line width=.6pt,<->] (mr1.east) -- (mr2.west);
+    \draw[usachO,dashed,line width=.6pt,<->] (mr4.east) -- (mr5.west);
+    \draw[usachO,dashed,line width=.6pt,<->] (mr5.east) -- (mr6.west);
+    \node[font=\scriptsize,faseA] at (3.65,-0.35) {$N_a$ Micro-redes, grafo $\mathcal G_a$};
+    \node[font=\scriptsize,faseB] at (6.75,-0.35) {$N_b$};
+    \node[font=\scriptsize,faseC] at (10.65,-0.35) {$N_c$ Micro-redes, grafo $\mathcal G_c$};
+  \end{tikzpicture}}
+
+  \vspace{6pt}
+  \footnotesize\raggedright
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item Cada DC-MR: FV + BESS + carga DC, un \textbf{IC monofásico} a su fase.
+      \item Sin barra DC común: entre fases, la energía solo pasa \textbf{por la red AC}.
+    \end{itemize}
+    \column{.48\textwidth}
+    \begin{itemize}\setlength\itemsep{1pt}
+      \item Distinto número de Micro-redes por fase.
+      \item Se mide y se gestiona \textbf{en la cabecera}.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{3. Pregunta de investigación y objetivo general}
+  \vspace{0.3cm}
+  \begin{block}{Pregunta de investigación}
+    \footnotesize ¿Cómo coordinar varias Micro-redes DC monofásicas por fase para gestionar el intercambio de energía y el desbalance en la cabecera de un alimentador BT 3$\phi$-4W, respetando la energía disponible en cada fase?
+  \end{block}
+  \vspace{0.4cm}
+  \begin{block}{Objetivo general}
+    \footnotesize Diseñar y validar, en simulación offline y en tiempo real, una estrategia de control jerárquica (terciario centralizado en cabecera + secundario distribuido por fase) que use $P$ y $Q$ de los IC de varias Micro-redes DC por fase para gestionar el intercambio de energía y el desbalance en la cabecera de un alimentador BT 3$\phi$-4W.
+  \end{block}
+\end{frame}
+
+\begin{frame}{3. Objetivos específicos}
+  \vspace{0.05cm}
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \node[font=\tiny\bfseries,usachTd,anchor=west] at (-0.3,0.45) {BASE Y ANÁLISIS};
+    \node[font=\tiny\bfseries,usachO,anchor=west] at (-0.3,-1.94) {DISEÑO DE CONTROL};
+    \node[font=\tiny\bfseries,faseC,anchor=west] at (-0.3,-3.52) {VALIDACIÓN};
+    \foreach \i/\y/\c/\t in {
+      1/0/usachTd/{\textbf{Revisar} sistemáticamente la literatura (balance de fases con recursos monofásicos, Micro-redes DC/híbridas, control jerárquico) para \textbf{delimitar la brecha}.},
+      2/-0.66/usachTd/{\textbf{Modelar} el alimentador BT 3$\phi$-4W con clientes monofásicos y varias Micro-redes DC por fase: cabecera y luego impedancias de fase y neutro.},
+      3/-1.32/usachTd/{\textbf{Caracterizar} qué parte del desbalance corrige $P$, cuál $Q$ y cuál fija la energía por fase (piso), como \textbf{criterio de diseño}.},
+      4/-2.24/usachO/{\textbf{Formular} el terciario como MPC económico convexo con restricciones de secuencia ($I_n$, VUF) y de energía por fase.},
+      5/-2.9/usachO/{\textbf{Diseñar} el secundario distribuido por fase (consenso de costo incremental con líder) y \textbf{analizar} su convergencia con saturaciones.},
+      6/-3.86/faseC/{\textbf{Implementar y comparar} en simulación offline (PLECS) contra operación local y la literatura: $I_n$, $|I_2|$/VUF, costo, FV recortada, SOC.},
+      7/-4.52/faseC/{\textbf{Validar} el secundario en \textbf{tiempo real con controladores en el lazo}: retardos, pérdida de paquetes y desconexión de Micro-redes.}}{
+      \node[circle,fill=\c,text=white,font=\tiny\bfseries,minimum size=0.5cm,inner sep=0pt] at (0,\y-0.14) {OE\i};
+      \node[anchor=west,text width=11.6cm] at (0.4,\y-0.14) {\t};
+    }
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{3. Nomenclatura y convención de signos}
+  \scriptsize\renewcommand{\arraystretch}{1.2}\setlength\tabcolsep{3.5pt}
+  \rowcolors{2}{usachOl}{white}
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{@{}lll@{\hspace{8pt}}lll@{}}
+    \thead \Th{Símbolo} & \Th{Descripción} & \Th{Unidad} & \Th{Símbolo} & \Th{Descripción} & \Th{Unidad} \\
+    $\phi\in\{a,b,c\}$ & fase & -- & $X_\phi=\sum_{k\in\Nset{\phi}}X_k$ & agregado por fase & -- \\
+    $\Nset{\phi}$, $N_\phi$ & Micro-redes DC de la fase & -- & $S_{h,\phi}=S_{L,\phi}-S_{\mathrm{IC},\phi}$ & potencia en cabecera & kVA \\
+    $k\in\Nset{\phi}$ & Micro-red DC / IC 1$\phi$ & -- & $P_h=\sum_\phi P_{h,\phi}$ & intercambio con la S/E ($>0$: importa) & kW \\
+    $S_{L,\phi}$ & clientes (no controlables) & kVA & $I_0,\,I_1,\,I_2$ & secuencias en cabecera & A \\
+    $\Pic{k},\,\Qic{k}$ & IC$_k$ ($>0$: DC$\to$AC) & kW, kvar & $I_n=3|I_0|$ & corriente de neutro & A \\
+    $S_k^{\max}$ & capacidad del IC$_k$ & kVA & $c_t$ & precio horario & u.m./kWh \\
+    $P_{PV,k},P_{dl,k},P_{cu,k}$ & FV, carga DC, FV recortada & kW & $w_0,\,w_2,\,w_c$ & pesos del objetivo & -- \\
+    $\PB{k},\,E_k,\,\SOC{k}$ & BESS (descarga $>0$) & kW, kWh & $\lambda_\phi$ & costo incremental fase $\phi$ & u.m./kW \\
+    $B,\,C$ & desbalance de $P$ y de $Q$ & A & $a=1\angle120^\circ$ & operador de Fortescue & -- \\
+  \end{tabular}}
+  \end{frame}
+
+\begin{frame}{3. Modelo: ecuaciones del sistema}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \node[blk,draw=faseB,fill=faseB!10,minimum width=1.0cm,minimum height=0.5cm,font=\tiny] (pv) at (0,0.55) {FV};
+    \node[blk,draw=faseB,fill=faseB!10,minimum width=1.0cm,minimum height=0.5cm,font=\tiny] (bs) at (0,0) {BESS};
+    \node[blk,draw=faseB,fill=faseB!10,minimum width=1.0cm,minimum height=0.5cm,font=\tiny] (dl) at (0,-0.55) {carga DC};
+    \draw[faseB,line width=1.4pt] (1.0,0.8) -- (1.0,-0.8) node[below,font=\tiny]{bus DC$_k$};
+    \foreach \n in {pv,bs,dl}{\draw[faseB,line width=.6pt] (\n.east) -- (\n.east -| 1.0,0);}
+    \node[ic,minimum width=1.0cm,minimum height=0.8cm,font=\tiny] (ic) at (2.0,0) {IC$_k$\\1$\phi$};
+    \draw[line width=.8pt] (1.0,0) -- (ic.west);
+    \draw[faseA,line width=1.4pt] (4.4,0.8) -- (4.4,-0.8) node[below,font=\tiny]{fase $\phi$};
+    \draw[-{Latex[length=2mm]},line width=.8pt] (ic.east) -- node[below,font=\tiny]{$P_{\mathrm{IC},k},\,Q_{\mathrm{IC},k}$} (4.4,0);
+    \node[blk,fill=gray!8,minimum width=1.3cm,minimum height=0.6cm,font=\tiny] (cl) at (5.9,-0.45) {clientes $S_{L,\phi}$};
+    \draw[faseA,line width=.6pt] (4.4,-0.45) -- (cl.west);
+    \node[circle,draw,fill=white,inner sep=1pt,font=\tiny] (m) at (5.9,0.5) {M};
+    \draw[faseA,line width=.8pt] (4.4,0.5) -- (m.west); \draw[line width=.8pt,-{Latex[length=2mm]}] (7.5,0.5) -- node[above,font=\tiny]{$S_{h,\phi}$} (m.east);
+    \node[ac,minimum width=1.0cm,minimum height=0.6cm,font=\tiny] at (8.1,0.5) {S/E};
+    \node[font=\tiny\bfseries,faseB] at (0.5,1.1) {lado DC};
+    \node[font=\tiny\bfseries,faseA] at (5.9,1.1) {lado AC (cabecera)};
+  \end{tikzpicture}
+
+  \vspace{6pt}
+  \footnotesize\renewcommand{\arraystretch}{1.55}
+  \begin{tabular}{@{}l@{\;\;}l@{\hspace{0.9cm}}l@{\;\;}l@{}}
+    \multicolumn{2}{@{}l}{\textbf{\color{usachT}Cada Micro-red DC $k$}} & \multicolumn{2}{l@{}}{\textbf{\color{usachT}Cabecera de la fase $\phi$}}\\
+    {\color{usachO}(1)} & $\Pic{k}=P_{PV,k}-P_{cu,k}-P_{dl,k}+\PB{k}$ & {\color{usachO}(4)} & $S_{h,\phi}=S_{L,\phi}-\sum_{k\in\Nset{\phi}}\big(\Pic{k}+j\Qic{k}\big)$\\
+    {\color{usachO}(2)} & $\SOC{k,t+1}=\SOC{k,t}-\PB{k,t}\,\Delta t/E_k$ & {\color{usachO}(5)} & $\vec I_\phi=\overline{S_{h,\phi}}\,/\,\overline{V_\phi}$\\
+    {\color{usachO}(3)} & $\Pic{k}^2+\Qic{k}^2\le (S_k^{\max})^2$ & {\color{usachO}(6)} & $[I_0\;I_1\;I_2]^{\top}=\mathbf F\,[\vec I_a\;\vec I_b\;\vec I_c]^{\top}$, \;$I_n=3|I_0|$\\
+  \end{tabular}
+
+  \vspace{6pt}
+  {\scriptsize\raggedright $\mathbf F$: matriz de Fortescue con $a=1\angle120^\circ$. \;Sin barra DC común: las fases solo se acoplan en (4)--(6), a través de la red.\par}
+\end{frame}
+
+\begin{frame}{3. Planteamiento formal del problema}
+  \vspace{0.05cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
+    \node[fill=usachT,text=white,font=\footnotesize\bfseries,minimum width=3.9cm,minimum height=0.5cm] (h1) at (1.95,0) {Dado};
+    \node[fill=usachO,text=white,font=\footnotesize\bfseries,minimum width=3.9cm,minimum height=0.5cm] (h2) at (6.15,0) {Encontrar};
+    \node[fill=usachTd,text=white,font=\footnotesize\bfseries,minimum width=3.9cm,minimum height=0.5cm] (h3) at (10.35,0) {Tal que};
+    \node[draw=usachT,fill=white,text width=3.7cm,minimum height=3.0cm,align=left,anchor=north,font=\scriptsize] at (h1.south) {%
+      \textbullet\ Pronósticos $S_{L,\phi}(t)$, $P_{PV,k}(t)$, $P_{dl,k}(t)$\\[2pt]
+      \textbullet\ Precio $c_t$\\[2pt]
+      \textbullet\ Parámetros $E_k$, $P_{B,k}^{\max}$, $S_k^{\max}$\\[2pt]
+      \textbullet\ Grafos $\mathcal G_\phi$ y $N_\phi$ por fase\\[2pt]
+      \textbullet\ Medición de cabecera $S_{h,\phi}$};
+    \node[draw=usachO,fill=white,text width=3.7cm,minimum height=3.0cm,align=left,anchor=north,font=\scriptsize] at (h2.south) {%
+      Las consignas de cada IC
+      \[ \Pic{k}^*(t),\;\Qic{k}^*(t) \]
+      para todo $k\in\Nset{a}\cup\Nset{b}\cup\Nset{c}$\\[2pt]
+      (y con ellas $\PB{k}$, $P_{cu,k}$, $\SOC{k}$)};
+    \node[draw=usachTd,fill=white,text width=3.7cm,minimum height=3.0cm,align=left,anchor=north,font=\scriptsize] at (h3.south) {%
+      \textbullet\ minimicen costo de $P_h$ y desbalance $|I_0|$, $|I_2|$\\[2pt]
+      \textbullet\ cumplan (1)--(3) y la energía disponible por fase\\[2pt]
+      \textbullet\ $3|I_0|\le I_n^{\max}$, \;$|I_2|\le I_2^{\max}$\\[2pt]
+      \textbullet\ se puedan ejecutar con información \textbf{local y de vecinas}};
+  \end{tikzpicture}
+
+  \vspace{0.3cm}
+  \begin{tikzpicture}
+    \node[card=12cm,draw=usachR] {\textbf{\color{usachR}Dificultad:} el desbalance \textbf{acopla las tres fases} (exige decidir en conjunto), pero la información de cada Micro-red está \textbf{repartida}. \;$\Rightarrow$ \textbf{Descomposición jerárquica:} terciario con agregados por fase + secundario que reparte dentro de cada fase.};
+  \end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{4. Idea 1: lo que ve la subestación}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+      \node[circle,draw=usachT,fill=usachT!10,minimum size=1.1cm,align=center,font=\tiny] (n) at (0,0) {cabecera\\fase $\phi$};
+      \draw[-{Latex[length=2mm]},line width=1pt] (-2.4,0) -- node[above]{$S_{h,\phi}$} node[below,font=\tiny]{desde la S/E} (n.west);
+      \draw[-{Latex[length=2mm]},line width=1pt,gray] (n.east) -- node[above]{$S_{L,\phi}$} node[below,font=\tiny]{clientes} (2.4,0);
+      \draw[-{Latex[length=2mm]},line width=1pt,usachT] (0,-1.8) -- node[right]{$\sum_k S_{\mathrm{IC},k}$} node[left,font=\tiny]{Micro-redes} (n.south);
+    \end{tikzpicture}
+
+    \vspace{4pt}
+    \[ S_{h,\phi}=S_{L,\phi}-\textstyle\sum_{k\in\Nset{\phi}}S_{\mathrm{IC},k} \]
+    \[ \vec I_\phi=\overline{S_{h,\phi}}/\overline{V_\phi}\;\xrightarrow{\text{Fortescue}}\;I_0,\;I_1,\;I_2 \]
+    \column{.48\textwidth}
+    \vspace{2pt}
+    \begin{block}{Resultado 1}
+      \footnotesize Con tensión de cabecera balanceada:
+      \[ I_0=I_2=0\iff S_{h,a}=S_{h,b}=S_{h,c} \]
+    \end{block}
+    \footnotesize
+    \begin{itemize}\setlength\itemsep{3pt}
+      \item Objetivo físico simple: que las tres fases \textbf{pidan lo mismo} a la subestación.
+      \item Las Micro-redes son la única parte \textbf{controlable} de $S_{h,\phi}$.
+      \item $I_0$ e $I_2$ son \textbf{lineales} en $P$ y $Q$ de los IC.
+    \end{itemize}
+    \vspace{2pt}
+    \resp{r1}{R1: derivación}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{4. Idea 2: $P$ y $Q$ hacen cosas distintas}
+  \begin{columns}[T,onlytextwidth]
+    \column{.46\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=1.0,font=\scriptsize]
+      \coordinate (O) at (0,0); \coordinate (B) at (2.6,0.5); \coordinate (jC) at (0.4,1.7);
+      \coordinate (S) at ($(B)+(jC)$);
+      \draw[gray!50,->] (-0.6,0) -- (3.4,0) node[right]{Re};
+      \draw[gray!50,->] (0,-0.9) -- (0,2.5) node[above]{Im};
+      \fill[usachT!8] (O) -- (B) -- (S) -- (jC) -- cycle;
+      \draw[dashed,gray] (B) -- (S) -- (jC);
+      \draw[-{Latex[length=2mm]},line width=1.2pt,faseA] (O) -- node[below right,pos=.6]{$B$ (de $P$)} (B);
+      \draw[-{Latex[length=2mm]},line width=1.2pt,faseC] (O) -- node[left,pos=.6]{$jC$ (de $Q$)} (jC);
+      \draw[-{Latex[length=2mm]},line width=1pt,usachO] (O) -- (S);
+      \draw[-{Latex[length=2mm]},line width=1pt,usachTd] (jC) -- (B);
+      \node[usachO,anchor=west] at (2.0,2.45) {$|B+jC|=|I_2|$};
+      \node[usachTd,anchor=west] at (1.2,-0.55) {$|B-jC|=|I_0|$};
+    \end{tikzpicture}
+
+    {\scriptsize $B$: qué tan distintas son las $P$ por fase; $C$: lo mismo con las $Q$.}
+    \column{.52\textwidth}
+    \begin{block}{Resultado 2 (paralelogramo)}
+      \footnotesize\[ |I_0|^2+|I_2|^2=2|B|^2+2|C|^2 \]
+    \end{block}
+    \vspace{2pt}
+    \begin{tikzpicture}[font=\footnotesize]
+      \node[card=6.2cm,draw=faseC] (q) {\textbf{\color{faseC}$Q$:} no gasta batería, pero \textbf{no achica $B$}. Cancela el reactivo de los clientes o traslada desbalance entre $I_0$ e $I_2$.};
+      \node[card=6.2cm,draw=faseA,below=4pt of q] (p) {\textbf{\color{faseA}$P$:} achica $B$ (iguala las fases), pero \textbf{gasta energía} de las baterías.};
+    \end{tikzpicture}
+
+    \vspace{3pt}
+    \footnotesize Por eso $P$ y $Q$ se deciden \textbf{juntas}. \hfill \resp{r1}{R1} \resp{r2}{R2: ¿y solo $Q$?}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{4. Idea 3: la energía de cada fase pone un límite}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \centering
+    {\footnotesize\bfseries\color{usachTd} La batería sí aplana en el tiempo\par}
+    \vspace{2pt}
+    \begin{tikzpicture}[x=0.22cm,y=0.9cm,font=\tiny]
+      \draw[gray!50,->] (0,0) -- (25,0) node[right]{h};
+      \draw[gray!50,->] (0,0) -- (0,2.7) node[above]{$P_{h,a}$};
+      \fill[usachR!20,domain=15.2:23.4,samples=40] plot (\x,{0.9+1.4*exp(-((\x-19.5)^2)/5)}) -- (23.4,1.35) -- (15.2,1.35) -- cycle;
+      \fill[usachT!25,domain=0:15.2,samples=40] (0,1.35) -- plot (\x,{0.9+1.4*exp(-((\x-19.5)^2)/5)}) -- (15.2,1.35) -- cycle;
+      \draw[faseA,line width=1pt,domain=0:24,samples=80] plot (\x,{0.9+1.4*exp(-((\x-19.5)^2)/5)});
+      \draw[densely dashed,line width=.8pt] (0,1.35) -- (24,1.35) node[right]{media};
+      \node[usachR] at (19.5,2.5) {descarga};
+      \node[usachTd] at (7,1.1) {carga};
+    \end{tikzpicture}
+    \column{.48\textwidth}
+    \centering
+    {\footnotesize\bfseries\color{usachR} pero no cambia la media de cada fase\par}
+    \vspace{2pt}
+    \begin{tikzpicture}[x=0.22cm,y=0.9cm,font=\tiny]
+      \draw[gray!50,->] (0,0) -- (25,0) node[right]{h};
+      \draw[gray!50,->] (0,0) -- (0,2.7) node[above]{$P_{h,\phi}$};
+      \draw[faseA,line width=1.2pt] (0,1.9) -- (24,1.9) node[right]{$a$};
+      \draw[faseB,line width=1.2pt] (0,1.3) -- (24,1.3) node[right]{$b$};
+      \draw[faseC,line width=1.2pt] (0,0.75) -- (24,0.75) node[right]{$c$};
+      \draw[decorate,decoration={brace,amplitude=3pt},usachR] (12,0.78) -- node[left=3pt,align=right]{diferencia que\\queda: piso} (12,1.87);
+    \end{tikzpicture}
+  \end{columns}
+
+  \vspace{6pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{.55\textwidth}
+    \footnotesize
+    Si cada batería cierra el día con el mismo SOC:
+    \[ \textstyle\int_{\text{día}}\Pic{\phi}\,dt=\int_{\text{día}}(P_{PV}-P_{dl})_\phi\,dt \]
+    La parte \textbf{media diaria} del desbalance activo no la corrige ningún control.
+    \column{.43\textwidth}
+    \begin{tikzpicture}
+      \node[card=5.2cm,draw=usachO] {\textbf{\color{usachO}Consecuencia:} separa lo que es \textbf{control} (aplanar en el tiempo) de lo que es \textbf{diseño} (dónde y cuánta FV/BESS por fase).};
+    \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{4. Arquitectura: un rol por nivel}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[co,minimum width=13.2cm,minimum height=1.0cm,text width=12.9cm] (T) at (6.6,4.6) {\textbf{Terciario: centralizado en cabecera} \;·\; cada 15 min, horizonte 24 h\\[1pt] \scriptsize decide $P^*_{\phi},\,Q^*_{\phi}$ y la trayectoria de $\mathrm{SOC}_{\phi}$ por fase \;·\; mira costo, $I_0$, $I_2$ y energía disponible};
+    \foreach \x/\f/\c in {2.2/a/faseA, 6.6/b/faseB, 11.0/c/faseC}{
+      \node[blk,draw=\c,fill=\c!8,minimum width=4.1cm,minimum height=1.3cm,text width=3.9cm,font=\scriptsize] (S\f) at (\x,2.3) {\textbf{\footnotesize Secundario fase $\f$}\\ consenso entre las Micro-redes de la fase\\ reparte $P^*_\f,Q^*_\f$ · segundos};
+      \draw[fl] ([xshift=0.6cm]\x,4.08) -- node[right,font=\tiny]{$P^*_\f,Q^*_\f$} ([xshift=0.6cm]S\f.north);
+      \draw[-{Latex[length=2mm]},dashed,usachO,line width=.6pt] ([xshift=-0.9cm]S\f.north) -- node[left,font=\tiny,black]{$\mathrm{SOC}_\f$} ([xshift=-0.9cm]\x,4.08);
+      \draw[fl] (S\f.south) -- node[right,font=\tiny]{$\Pic{k}^*,\Qic{k}^*$} (\x,0.52);
+    }
+    \node[ic,minimum width=13.2cm,minimum height=1.0cm,text width=12.9cm] (P) at (6.6,0.0) {\textbf{Primario: local en cada Micro-red} · milisegundos\\[1pt]\scriptsize IC sigue su consigna (PLL + PR) \;·\; BESS forma $V_{dc,k}$ (droop) \;·\; FV en MPPT o recorte};
+  \end{tikzpicture}}
+
+  \vspace{6pt}
+  \begin{tikzpicture}
+    \node[card=12cm] {\textbf{\color{usachT}Regla:} el balance \textbf{entre} fases lo decide solo el terciario; el secundario reparte \textbf{dentro} de cada fase; el primario ejecuta. \hfill\resp{r6}{R6: ¿por qué así?}};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{4. Formulación del problema del terciario}
+  \footnotesize
+  \textbf{Variables:} $\Pic{\phi,t},\,\Qic{\phi,t},\,\PB{\phi,t},\,P_{cu,\phi,t},\,\SOC{\phi,t}$, \;$\phi\in\{a,b,c\}$, $t=1,\dots,H$
+  \begin{align*}
+    \min\;& \textstyle\sum_t\Big[c_t P_{h,t}+w_c\sum_\phi P_{cu,\phi,t}+w_0|I_{0,t}|^2+w_2|I_{2,t}|^2\Big]\Delta t\\
+    \text{s.a.}\;& \Pic{\phi,t}=P_{PV,\phi,t}-P_{cu,\phi,t}-P_{dl,\phi,t}+\PB{\phi,t},\qquad 0\le P_{cu,\phi,t}\le P_{PV,\phi,t}\\
+    & \SOC{\phi,t+1}=\SOC{\phi,t}-\PB{\phi,t}\Delta t/E_\phi,\quad \SOC{\phi,H}=\SOC{\phi,0},\quad \mathrm{SOC}^{\min}\le\SOC{\phi,t}\le\mathrm{SOC}^{\max}\\
+    & |\PB{\phi,t}|\le P_{B,\phi}^{\max},\qquad \Pic{\phi,t}^2+\Qic{\phi,t}^2\le (S_\phi^{\max})^2\\
+    & P_{h,t}\le P_{tr}^{\max},\qquad 3|I_{0,t}|\le I_n^{\max},\qquad |I_{2,t}|\le I_2^{\max}
+  \end{align*}
+  \vspace{-4pt}
+  \begin{itemize}\setlength\itemsep{2pt}
+    \item $I_0$, $I_2$ son afines en $(P,Q)$ (R1) $\Rightarrow$ objetivo cuadrático y restricciones de cono: \textbf{SOCP}, óptimo global.
+    \item Sin variables binarias (no hay diésel ni encendido/apagado), a diferencia de los EMS tipo MILP [8].
+    \item En MPC deslizante, $\SOC{\phi,H}=\SOC{\phi,0}$ se reemplaza por costo terminal o referencia de SOC.
+  \end{itemize}
+  \end{frame}
+
+\begin{frame}{4. Terciario: horizonte deslizante y precio de la energía}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \centering
+    \begin{tikzpicture}[x=0.42cm,y=1cm,font=\scriptsize]
+      \foreach \r in {0,1,2}{
+        \pgfmathsetmacro{\yy}{-0.85*\r}
+        \node[anchor=east] at (\r-0.2,\yy) {$t{=}\r$};
+        \fill[usachO!80] (\r,\yy-0.17) rectangle (\r+1,\yy+0.17);
+        \fill[usachT!18] (\r+1,\yy-0.17) rectangle (\r+9,\yy+0.17);
+        \draw[usachT] (\r,\yy-0.17) rectangle (\r+9,\yy+0.17);
+      }
+      \draw[decorate,decoration={brace,amplitude=3pt,mirror}] (2,-2.0) -- node[below=3pt]{24 h de plan (96 pasos de 15 min)} (11,-2.0);
+    \end{tikzpicture}
+
+    \vspace{2pt}
+    {\scriptsize \textcolor{usachO}{\rule{6pt}{6pt}} se aplica \quad \textcolor{usachT!40}{\rule{6pt}{6pt}} se replanifica\par}
+    \vspace{4pt}
+    \footnotesize\raggedright
+    \begin{enumerate}\setlength\itemsep{1pt}
+      \item Resolver el problema con pronósticos y SOC medido.
+      \item Aplicar solo los primeros 15 min.
+      \item Medir, correr el horizonte y repetir.
+    \end{enumerate}
+    \column{.48\textwidth}
+    \begin{block}{Precio sombra de la energía por fase}
+      \footnotesize Multiplicador de la ecuación de SOC (2), agregada por fase:
+      \[ \mu_{\phi,t}=\frac{\partial J^*}{\partial E_{\phi,t}}\quad\text{[u.m./kWh]} \]
+    \end{block}
+    \footnotesize
+    \begin{itemize}\setlength\itemsep{3pt}
+      \item Vale cuánto mejora el óptimo con 1 kWh más en la fase $\phi$ a la hora $t$.
+      \item El terciario descarga donde $\mu$ es alto (punta, fase cargada).
+      \item Idea por evaluar: enviar $\mu$ al secundario como señal de precio.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{4. Nivel secundario: consenso dentro de cada fase}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+      \node[co,minimum width=2.6cm,minimum height=.6cm,font=\scriptsize] (t) at (0.9,2.4) {Terciario: $P^*_c$, $Q^*_c$};
+      \node[blk,fill=gray!8,minimum width=2.2cm,minimum height=.55cm,font=\scriptsize] (m) at (4.0,2.4) {medición $P_{h,c}$};
+      \foreach \i/\x in {1/0,2/1.8,3/3.6}{
+        \node[circle,draw=faseC,fill=faseC!12,line width=.8pt,minimum size=0.95cm,align=center,font=\tiny] (a\i) at (\x,0.6) {MR$_\i$\\$\lambda_\i$};
+      }
+      \draw[usachO,dashed,line width=.8pt,<->] (a1) -- (a2); \draw[usachO,dashed,line width=.8pt,<->] (a2) -- (a3);
+      \draw[fl] (t.south) -- (a1.north);
+      \draw[sg] (m.south) |- ++(-1.5,-0.55) -| ([xshift=0.25cm]a1.north);
+      \node[font=\tiny,faseC] at (0,-0.15) {líder};
+      \node[font=\tiny,align=center] at (1.8,-0.55) {cada MR habla solo con sus vecinas};
+    \end{tikzpicture}
+    \column{.48\textwidth}
+    \footnotesize
+    \begin{block}{Problema de la fase $c$ y su óptimo}
+      \footnotesize
+      \[ \min_{\PB{k}}\textstyle\sum_{k}\tfrac{1}{2E_k}\PB{k}^2+b_k(\SOC{k})\PB{k} \]
+      \[ \text{s.a.}\;\textstyle\sum_k\Pic{k}=P^*_c \]
+      \[ \text{KKT:}\quad \tfrac{1}{E_k}\PB{k}+b_k(\SOC{k})=\lambda_c \quad\forall k \]
+    \end{block}
+    \begin{itemize}\setlength\itemsep{3pt}
+      \item Mismo $\lambda$ = \textbf{costo incremental común}: el despacho del cap.~4 de [2], con \textbf{un $\lambda$ por fase}.
+      \item $b_k=\beta(\mathrm{SOC}^{\mathrm{ref}}-\SOC{k})$: con SOC bajo, descargar es caro.
+      \item Solo el líder conoce $P^*_c$ y la medición de cabecera.
+    \end{itemize}
+    \resp{r4}{R4: algoritmo}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{4. Diagrama de bloques completo}
+  \centering
+  \resizebox{!}{5.45cm}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \node[ac,text width=2.5cm,minimum height=1.05cm] (fc) at (0,4.6) {\textbf{Pronósticos}\\ FV, clientes $S_{L,\phi}$,\\ precio $c_t$};
+    \node[ac,text width=2.5cm,minimum height=1.05cm] (mh) at (0,2.6) {\textbf{Medición cabecera}\\ $S_{h,\phi}\Rightarrow I_0,I_2,P_h$};
+    \node[co,text width=3.7cm,minimum height=1.7cm] (T) at (4.6,3.6) {\textbf{Terciario (EMS)}\\ MPC económico convexo\\ cada 15 min, horizonte 24 h\\ mín.\ costo + desbalance\\ s.a.\ $I_n^{\max}, I_2^{\max}$, SOC, $S^{\max}$};
+    \draw[fl] (fc.east) -- ([yshift=0.5cm]T.west);
+    \draw[fl] (mh.east) -- ([yshift=-0.5cm]T.west);
+    \foreach \y/\f/\c in {5.0/a/faseA,3.6/b/faseB,2.2/c/faseC}{
+      \node[blk,draw=\c,fill=\c!8,text width=2.8cm,minimum height=0.95cm] (S\f) at (9.4,\y) {\textbf{Secundario fase $\f$}\\ consenso $\lambda_\f$ en $\mathcal G_\f$, $\sim$s};
+      \draw[fl] (T.east) -- node[above,font=\tiny,sloped,pos=.55]{$P^*_\f,Q^*_\f$} (S\f.west);
+      \draw[line width=.7pt] (S\f.east) -- (11.35,\y);
+    }
+    \draw[line width=.7pt] (11.35,5.0) -- (11.35,1.15);
+    \node[ic,text width=3.7cm,minimum height=1.3cm] (P) at (9.4,0.3) {\textbf{Primario (cada DC-MR $k$)}, $\sim$ms\\ IC: PLL + PR de corriente\\ BESS: droop $V_{dc,k}$; FV: MPPT/recorte};
+    \draw[fl] (11.35,1.15) -- (11.35,0.95);
+    \node[font=\tiny,anchor=west,align=left] at (11.45,3.6) {$\Pic{k}^*,\Qic{k}^*$\\ de las\\ 3 fases};
+    \node[blk,fill=gray!6,text width=4.6cm,minimum height=1.3cm] (G) at (2.6,0.3) {\textbf{Planta}\\ DC-MR$_k$ (FV, BESS, carga DC) + IC$_k$\\ alimentador 3$\phi$-4W + clientes 1$\phi$};
+    \draw[pw] (P.west) -- node[above,font=\tiny]{$i_{\mathrm{IC},k}$} node[below,font=\tiny]{$v_{dc,k}$} (G.east);
+    \draw[sg] (G.north -| mh.south) -- node[left,font=\tiny,black,align=right]{corrientes\\ de fase} (mh.south);
+    \draw[sg] (Sa.north) -- ++(0,0.55) -| node[pos=.25,above,font=\tiny,black]{$\mathrm{SOC}_\phi$, $P_\phi$ agregados por fase} (T.north);
+    \draw[sg] ([xshift=-0.8cm]P.north) -- node[left,font=\tiny,black,pos=.4]{$\mathrm{SOC}_k$ local y de vecinos} ([xshift=-0.8cm]Sc.south);
+  \end{tikzpicture}}
+
+  \vspace{2pt}
+  \footnotesize\raggedright \textcolor{usachO}{\textbf{Lazo lento}} (min): cabecera $\to$ terciario $\to$ consignas por fase. \textcolor{faseB}{\textbf{Lazo medio}} (s): el líder compara $P_{h,\phi}$ con la consigna y el consenso reparte la corrección. \textcolor{usachTd}{\textbf{Lazo rápido}} (ms): cada IC sigue su consigna.
+\end{frame}
+
+% =====================================================================
+\begin{frame}{5. Aporte esperado e hipótesis}
+  \vspace{0.1cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \foreach \i/\x/\h/\t in {1/0/{Formulación}/{Gestión de cabecera de un alimentador 3$\phi$-4W usando \textbf{varias Micro-redes DC por fase} como actuadores, con $P$ y $Q$ por fase y energía por fase.},2/4.2/{Análisis}/{Qué corrige $P$, qué corrige $Q$ y qué fija la energía: criterio de \textbf{diseño} para ubicar FV/BESS por fase.},3/8.4/{Control}/{Secundario distribuido con \textbf{un $\lambda$ por fase}, que extiende el despacho por consenso a redes desbalanceadas.}}{
+      \node[fill=usachO,text=white,font=\footnotesize\bfseries,minimum width=3.9cm,minimum height=0.55cm] (h\i) at (\x+1.95,0) {\i. \h};
+      \node[draw=usachO,fill=white,text width=3.7cm,minimum height=2.0cm,align=left,font=\footnotesize,anchor=north] at (h\i.south) {\t};
+    }
+  \end{tikzpicture}
+
+  \vspace{0.35cm}
+  \begin{block}{Hipótesis de trabajo}
+    \footnotesize Si un terciario que conoce la energía disponible en cada fase coordina $P$ y $Q$ de las Micro-redes, y un secundario por fase ejecuta esas consignas, entonces $I_0$ e $I_2$ en cabecera bajan respecto de la operación local, \textbf{sin un aumento relevante del costo de energía}, hasta el límite que fija la energía por fase.
+  \end{block}
+  \raggedleft\resp{r5}{R5: literatura} \resp{r7}{R7: alcance}
+\end{frame}
+
+\begin{frame}{5. Metodología y plan de trabajo (tentativo)}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=0.48cm,font=\scriptsize]
+    \foreach \j/\l in {0/{Nov--Dic 26},1/{Ene--Mar 27},2/{Abr--Jul 27},3/{Ago--Oct 27},4/{Nov--Dic 27}}{
+      \node[fill=usachT,text=white,minimum width=1.9cm,minimum height=0.42cm,font=\tiny\bfseries] at (4.1+2*\j,0.9) {\l};}
+    \foreach \r/\t/\a/\b/\c in {0/{Revisión sistemática (OE1)}/0/1.2/usachO,1/{Modelo y caracterización (OE2--OE3)}/0.6/2.4/usachO,2/{Terciario (OE4)}/1.5/3.4/usachT,3/{Secundario (OE5)}/2.5/4.6/usachT,4/{Simulación offline PLECS (OE6)}/4.0/6.0/faseC,5/{Tiempo real con controladores (OE7)}/5.5/7.6/faseC,6/{Artículo de conferencia}/5.5/7.4/faseB,7/{Escritura y defensa}/6.5/10.0/gray}{
+      \node[anchor=east,text width=4.0cm,align=right] at (3.0,-\r) {\t};
+      \fill[\c!80,rounded corners=1.5pt] (3.1+\a,-\r-0.3) rectangle (3.1+\b,-\r+0.3);
+    }
+    \foreach \j in {0,...,5}{\draw[gray!30] (3.1+2*\j,0.6) -- (3.1+2*\j,-7.5);}
+  \end{tikzpicture}}
+
+  \vspace{4pt}
+  \footnotesize\raggedright
+  \textbf{Comparación:} operación local (autoconsumo) · solo $P$ · $P+Q$ · estrategias de la literatura.\;
+  \textbf{Métricas:} $I_n$, $|I_2|$/VUF, costo, FV recortada, SOC. \hfill\resp{r8}{R8}
+\end{frame}
+
+\begin{frame}{5. Preguntas para conversar}
+  \vspace{0.1cm}
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
+    \foreach \i/\y/\t in {1/0/{\textbf{Alcance de red:} ¿objetivo solo en cabecera, o también tensiones a lo largo del alimentador (flujo 3$\phi$-4W con impedancias)?},2/-1.05/{\textbf{Límites:} ¿pesos $w_0$ vs.\ $w_2$, o límites duros de $I_n$ y VUF según norma?},3/-2.1/{\textbf{Incertidumbre:} ¿terciario determinista primero, o desde ya robusto/estocástico?},4/-3.15/{\textbf{Validación:} ¿PLECS con modelo promedio de los IC basta para la tesis, o se apunta a laboratorio?},5/-4.2/{\textbf{Extensiones:} ¿EV/V2G dentro del núcleo o como trabajo futuro?}}{
+      \node[circle,fill=usachO,text=white,font=\footnotesize\bfseries,minimum size=0.6cm] at (0,\y) {\i};
+      \node[anchor=west,text width=11.3cm] at (0.5,\y) {\t};
+    }
+  \end{tikzpicture}
+
+  \vspace{0.3cm}
+  \footnotesize\raggedright\textbf{\color{usachT}Y la pregunta de fondo:} ¿el foco (gestión de cabecera con varias Micro-redes DC por fase) tiene el tamaño adecuado para un magíster? \resp{r7}{R7}
+\end{frame}
+
+\begin{frame}{Bibliografía base}
+  \fontsize{5.9}{6.9}\selectfont
+  \textbf{\color{usachT}Control de Micro-redes híbridas y desbalance (grupo del profesor guía)}
+  \begin{itemize}\setlength\itemsep{0.5pt}
+    \item[{[1]}] E. Espina \emph{et al.}, ``A consensus-based secondary control strategy for hybrid ac/dc microgrids with experimental validation,'' \emph{IEEE Trans. Power Electron.}, vol.~36, no.~5, pp.~5971--5984, 2021.
+    \item[{[2]}] E. Espina González, ``Distributed secondary control of hybrid ac/dc microgrids,'' tesis doctoral, U. de Chile / U. of Waterloo, 2021 (cap.~4).
+    \item[{[3]}] E. Espina \emph{et al.}, ``Cooperative regulation of imbalances in three-phase four-wire microgrids using single-phase droop control and secondary control algorithms,'' \emph{IEEE Trans. Power Electron.}, vol.~35, no.~2, pp.~1978--1992, 2020.
+    \item[{[4]}] A. Navas-Fonseca \emph{et al.}, ``Distributed predictive secondary control with soft constraints for optimal dispatch in hybrid AC/DC microgrids,'' \emph{IEEE Trans. Smart Grid}, vol.~14, no.~6, pp.~4204--4218, 2023.
+  \end{itemize}
+  \textbf{\color{usachT}Balance de fases con recursos monofásicos}
+  \begin{itemize}\setlength\itemsep{0.5pt}
+    \item[{[5]}] W. Pinthurat, B. Hredzak, ``Distributed control strategy of single-phase battery systems for compensation of unbalanced active powers in a three-phase four-wire microgrid,'' \emph{Energies}, vol.~14, no.~24, art.~8287, 2021.
+    \item[{[6]}] I. Mexis, G. Todeschini, Z. Zhou, ``Coordinated control of three single-phase BESS inverters using local measurements to mitigate voltage unbalance,'' \emph{IEEE Trans. Energy Convers.}, vol.~37, no.~4, pp.~2941--2951, 2022.
+    \item[{[7]}] S. A. Raza, J. Jiang, ``Mathematical foundations for balancing single-phase residential microgrids connected to a three-phase distribution system,'' \emph{IEEE Access}, vol.~10, pp.~5292--5303, 2022.
+  \end{itemize}
+  \textbf{\color{usachT}Nivel terciario y despacho}
+  \begin{itemize}\setlength\itemsep{0.5pt}
+    \item[{[8]}] R. Palma-Behnke \emph{et al.}, ``A microgrid energy management system based on the rolling horizon strategy,'' \emph{IEEE Trans. Smart Grid}, vol.~4, no.~2, pp.~996--1006, 2013.
+    \item[{[9]}] L. Meng \emph{et al.}, ``Tertiary control of voltage unbalance compensation for optimal power quality in islanded microgrids,'' \emph{IEEE Trans. Energy Convers.}, vol.~29, no.~4, pp.~802--815, 2014.
+    \item[{[10]}] J. Fu \emph{et al.}, ``Three-phase four-wire OPF-based collaborative control of PV inverter and ESS for low-voltage distribution networks with high proportion PVs,'' \emph{Front. Energy Res.}, vol.~8, art.~615870, 2021.
+    \item[{[11]}] S. Yang, S. Tan, J.-X. Xu, ``Consensus based approach for economic dispatch problem in a smart grid,'' \emph{IEEE Trans. Power Syst.}, vol.~28, no.~4, pp.~4416--4426, 2013.
+    \item[{[12]}] J. M. Guerrero \emph{et al.}, ``Hierarchical control of droop-controlled AC and DC microgrids,'' \emph{IEEE Trans. Ind. Electron.}, vol.~58, no.~1, pp.~158--172, 2011.
+  \end{itemize}
+\end{frame}
+
+% =====================================================================
+%  RESPALDO PARA PREGUNTAS
+% =====================================================================
+\begin{frame}[label=mapa]{Respaldo para preguntas}
+  \footnotesize Láminas de apoyo; se abren solo si el profesor pregunta.\\[6pt]
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
+    \foreach \i/\t in {1/{Derivación de $B$, $C$ y del paralelogramo},2/{¿Por qué no basta un compensador de reactivos?},3/{El planteamiento anterior y por qué no bastaba},4/{Algoritmo del secundario},5/{Qué existe en la literatura y dónde está la brecha},6/{¿Por qué terciario centralizado y secundario distribuido?},7/{Alcance: núcleo de la tesis vs.\ extensiones},8/{Casos de comparación y métricas}}{
+      \node[anchor=west] at (0,-0.52*\i) {\hyperlink{r\i}{\beamerbutton{R\i}}\; \t};}
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[label=r1]{R1. Derivación de $B$, $C$ y del paralelogramo}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    Cabecera balanceada: $V_a=V$, $V_b=a^2V$, $V_c=aV$, \;$a=1\angle120^\circ$.
+    \[ \vec I_a=\tfrac{P_a-jQ_a}{V},\;\; \vec I_b=\tfrac{(P_b-jQ_b)\,a^2}{V},\;\; \vec I_c=\tfrac{(P_c-jQ_c)\,a}{V} \]
+    \[ I_0=\tfrac13(\vec I_a+\vec I_b+\vec I_c)=B-jC \]
+    \[ I_2=\tfrac13(\vec I_a+a^2\vec I_b+a\vec I_c)=\overline{B+jC} \]
+    con
+    \[ B=\tfrac{1}{3V}(P_a+a^2P_b+aP_c) \]
+    \[ C=\tfrac{1}{3V}(Q_a+a^2Q_b+aQ_c) \]
+    \column{.48\textwidth}
+    \begin{block}{Paralelogramo}
+      \footnotesize\[|B-jC|^2+|B+jC|^2=2|B|^2+2|C|^2\]
+    \end{block}
+    \begin{itemize}\setlength\itemsep{2pt}
+      \item Mínimo de $|I_0|^2+|I_2|^2$ con $C=0$: vale $2|B|^2$, \;$|I_0|=|I_2|=|B|$.
+      \item Anular $I_0$ con $Q$: $jC=B\Rightarrow |I_2|=2|B|$.
+      \item $B=0\iff P_a=P_b=P_c$ (porque $1+a+a^2=0$).
+      \item Resultado 1: $I_0=I_2=0\iff B=C=0\iff S_{h,a}=S_{h,b}=S_{h,c}$.
+    \end{itemize}
+  \end{columns}
+  \volver
+\end{frame}
+
+\begin{frame}[label=r2]{R2. ¿Por qué no basta un compensador de reactivos?}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \begin{itemize}\setlength\itemsep{4pt}
+      \item Un STATCOM o un IC con $P=0$ solo mueve $C$ (Resultado 2).
+      \item Con $C$ libre: puede llevar $|I_0|$ o $|I_2|$ a cero, \textbf{pero no ambos} si $B\neq0$.
+      \item Lo mejor que logra en total: $|I_0|^2+|I_2|^2=2|B|^2$.
+      \item Los compensadores clásicos con transferencia de \textbf{potencia activa} entre fases (p.\ ej., Steinmetz, convertidores trifásicos) sí reducen $B$, pero son equipos nuevos y trifásicos.
+    \end{itemize}
+    \column{.48\textwidth}
+    \begin{tikzpicture}
+      \node[card=5.8cm] {\textbf{\color{usachT}Lo que aporta la propuesta}\\[2pt] Usa recursos que \textbf{ya existen} (Micro-redes con batería), monofásicos y distribuidos, y les agrega la coordinación para mover $P$ \textbf{en el tiempo} y $Q$ \textbf{sin costo energético}.};
+    \end{tikzpicture}
+
+    \vspace{6pt}
+    \begin{tikzpicture}
+      \node[card=5.8cm,draw=usachO] {\textbf{\color{usachO}Respuesta corta}\\[2pt] ``$Q$ traslada el desbalance entre secuencias; para achicarlo hay que igualar las $P$, y eso requiere energía. Esa energía está en las baterías de las Micro-redes.''};
+    \end{tikzpicture}
+  \end{columns}
+  \volver
+\end{frame}
+
+\begin{frame}[label=r3]{R3. El planteamiento anterior y por qué no bastaba}
+  \footnotesize
+  Ley evaluada: \;$\Pic{i}^{*}=\bar P_{\mathrm{net}}+\frac{E_i}{\tau}\big(\SOCw-\SOC{i}\big)$, \quad $\SOCw=\sum_iE_i\SOC{i}/\sum_iE_i$.
+
+  \vspace{4pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{.5\textwidth}
+    \textbf{\color{usachT}1. La suma se anula}
+    \[\textstyle\sum_iE_i(\SOCw-\SOC{i})=0\]
+    \[\textstyle\Rightarrow\;\sum_i\Pic{i}=\sum_iP_{\mathrm{net},i}\;\Rightarrow\;\sum_i\PB{i}\equiv0\]
+    El SOC promedio no cambia: las baterías solo se pasan energía entre sí, a través de la red.
+
+    \vspace{4pt}
+    \textbf{\color{usachT}2. Régimen permanente}\\
+    Con $P_{\mathrm{net},i}$ constante, $\Pic{i}\to P_{\mathrm{net},i}$: el mismo desbalance que sin coordinar. Es un filtro $1/(1+s\tau)$.
+    \column{.48\textwidth}
+    \textbf{\color{usachT}3. Sin desbalance previo}\\
+    Por el Resultado 1, toda transferencia sostenida entre fases exige $P_{h,a}\neq P_{h,b}$: \textbf{crea} desbalance.
+
+    \vspace{6pt}
+    \begin{tikzpicture}
+      \node[card=5.6cm,draw=usachO] {\textbf{\color{usachO}Qué se rescata:} la idea de usar las Micro-redes por fase, el consenso y el balance de SOC. Ahora el consenso trabaja \textbf{dentro} de cada fase y el objetivo vive en la \textbf{cabecera}.};
+    \end{tikzpicture}
+  \end{columns}
+  \volver
+\end{frame}
+
+
+\begin{frame}[label=r4]{R4. Algoritmo del secundario (por fase)}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \column{.54\textwidth}
+    \textbf{Problema de la fase $\phi$:}
+    \begin{align*}
+      \min_{\PB{k}}\;&\textstyle\sum_{k\in\Nset{\phi}} \tfrac{1}{2E_k}\PB{k}^2+b_k(\SOC{k})\,\PB{k}\\
+      \text{s.a.}\;&\textstyle\sum_{k}\Pic{k}=P^*_\phi+\Delta P_\phi^{\mathrm{corr}},\quad |\PB{k}|\le P_{B,k}^{\max}
+    \end{align*}
+    $b_k=\beta(\mathrm{SOC}^{\mathrm{ref}}-\SOC{k})$.
+
+    \vspace{4pt}
+    \textbf{Iteración} (Yang--Tan--Xu [11]), pesos $w_{kj}$ en $\mathcal G_\phi$:
+    \begin{align*}
+      \lambda_k&\leftarrow\textstyle\sum_j w_{kj}\lambda_j+\varepsilon\,y_k\\
+      \PB{k}&\leftarrow\arg\min\{C_k(\PB{k})-\lambda_k\PB{k}\}\ \text{(con saturación)}\\
+      y_k&\leftarrow\textstyle\sum_j w_{kj}y_j-(\PB{k}^{\mathrm{new}}-\PB{k}^{\mathrm{old}})
+    \end{align*}
+    \column{.44\textwidth}
+    \begin{itemize}\setlength\itemsep{3pt}
+      \item $y_k$ estima el desajuste de potencia de la fase; su suma se conserva.
+      \item El líder inicializa $y$ con la consigna y suma la corrección medida en cabecera.
+      \item \textbf{Reactivos:} $\sum_k\Qic{k}=Q^*_\phi$, consenso en la razón de uso $\Qic{k}/\sqrt{(S_k^{\max})^2-\Pic{k}^2}$.
+      \item Por estudiar: convergencia con saturación, retardos y pérdida de enlaces.
+    \end{itemize}
+  \end{columns}
+  \volver
+\end{frame}
+
+\begin{frame}[label=r5]{R5. Qué existe en la literatura y dónde está la brecha}
+  \scriptsize\renewcommand{\arraystretch}{1.22}
+  \rowcolors{2}{usachOl}{white}
+  \begin{tabularx}{\textwidth}{@{}p{2.7cm}p{1.1cm}X X@{}}
+    \thead \Th{Línea} & \Th{Trabajos} & \Th{Qué hacen} & \Th{Qué no cubren de este escenario} \\
+    BESS / FV / EV monofásicos que balancean fases en BT & [5], [6] & Compensan $P$ por fase ($Q$ en [6]); distribuido o con medición local & Sin varias Micro-redes DC por fase con IC; sin terciario + secundario ni restricciones de secuencia en cabecera \\
+    Micro-redes monofásicas residenciales & [7] & Transferencia entre fases para balance & Solo $P$; sin control distribuido \\
+    Desbalance en Micro-redes AC aisladas & [3], [9] & Droop por fase + secundario; terciario de VUF & Aisladas, recursos AC, sin cabecera ni SOC por fase \\
+    Despacho óptimo en híbridas & [1], [2], [4] & Consenso de costo incremental; DMPC con IC & Trifásico balanceado; bus DC único \\
+    EMS / OPF 3$\phi$-4W con BESS & [8], [10] & Horizonte deslizante; VUF como restricción; SOC diario & Centralizado puro; sin secundario distribuido por fase \\
+  \end{tabularx}
+
+  \vspace{5pt}
+  \footnotesize\textbf{Brecha candidata (a confirmar con la revisión sistemática):} varias Micro-redes DC por fase como actuadores + terciario de cabecera con $P$, $Q$ y energía por fase + secundario distribuido por fase.
+  \volver
+\end{frame}
+
+\begin{frame}[label=r6]{R6. ¿Por qué terciario centralizado y secundario distribuido?}
+  \scriptsize\renewcommand{\arraystretch}{1.3}
+  \rowcolors{2}{usachOl}{white}
+  \begin{tabularx}{\textwidth}{@{}p{2.6cm}XX@{}}
+    \thead \Th{Criterio} & \Th{Terciario (centralizado)} & \Th{Secundario (distribuido)} \\
+    Escala de tiempo & 15 min: hay tiempo para optimizar & Segundos: necesita reaccionar rápido \\
+    Información & Pronósticos y medición de cabecera: ya están en un punto & SOC y potencia de cada Micro-red: están repartidos \\
+    Tamaño & Variables \textbf{agregadas por fase}: no crece con $N_\phi$ & Crece con $N_\phi$: conviene repartir el cálculo \\
+    Acople & El desbalance acopla las tres fases: decisión conjunta & Dentro de una fase el reparto no afecta el desbalance \\
+    Fallas & Si se cae, las Micro-redes vuelven a operación local & Sin punto único de falla; plug-and-play \\
+  \end{tabularx}
+
+  \vspace{6pt}
+  \footnotesize\textbf{Extensión posible:} terciario distribuido (ADMM / DMPC) usando el centralizado como referencia de comparación.
+  \volver
+\end{frame}
+
+\begin{frame}[label=r7]{R7. Alcance: núcleo de la tesis vs.\ extensiones}
+  \begin{columns}[T,onlytextwidth]
+    \column{.49\textwidth}
+    \begin{block}{Núcleo (comprometido)}
+      \footnotesize
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item Modelo de cabecera + Micro-redes DC por fase.
+        \item Caracterización $P$ / $Q$ / energía (Resultados 1--2 y piso).
+        \item Terciario MPC económico convexo.
+        \item Secundario por consenso con un $\lambda$ por fase.
+        \item Validación en PLECS (modelo promedio de los IC).
+      \end{itemize}
+    \end{block}
+    \column{.49\textwidth}
+    \begin{exampleblock}{Extensiones (si hay tiempo)}
+      \footnotesize
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item Flujo 3$\phi$-4W con impedancias de fase y neutro; VUF por nodo.
+        \item Incertidumbre (MPC robusto o estocástico).
+        \item EV / V2G como recurso adicional.
+        \item Retardos y pérdida de enlaces en el consenso.
+        \item Validación en laboratorio o HIL.
+      \end{itemize}
+    \end{exampleblock}
+  \end{columns}
+  \volver
+\end{frame}
+
+\begin{frame}[label=r8]{R8. Casos de comparación y métricas}
+  \begin{columns}[T,onlytextwidth]
+    \column{.49\textwidth}
+    \footnotesize\textbf{\color{usachT}Casos}
+    \begin{enumerate}\setlength\itemsep{2pt}
+      \item Operación local: cada Micro-red hace autoconsumo, $Q=0$.
+      \item Terciario solo con $P$.
+      \item Terciario con $P+Q$.
+      \item Estrategias de la literatura adaptadas al escenario ([5], [6]).
+      \item Variaciones: distinto $N_\phi$, ubicación de FV/BESS, error de pronóstico.
+    \end{enumerate}
+    \column{.49\textwidth}
+    \footnotesize\textbf{\color{usachT}Métricas}
+    \begin{itemize}\setlength\itemsep{2pt}
+      \item $I_n$ RMS y máxima en cabecera.
+      \item $|I_2|$, VUF y CUF.
+      \item Costo de la energía importada.
+      \item Energía FV recortada.
+      \item SOC: mínimo, dispersión y valor final.
+      \item Secundario: iteraciones hasta converger, error de seguimiento.
+    \end{itemize}
+  \end{columns}
+  \volver
+\end{frame}
+
+
+\end{document}

@@ -1,0 +1,201 @@
+% =====================================================================
+%  Pauta de preparación — reunión-exposición con Prof. Enrique Espina
+%  Lunes 9-11-2026, 17:00, Laboratorio E2Tech, USACH
+%  Acompaña a laminas_reunion_9nov_v3.pdf (2 láminas)
+%  Compilar con XeLaTeX: xelatex pauta_reunion_9nov_v3.tex
+% =====================================================================
+\documentclass[10pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tabularx,booktabs,array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,urlcolor=blue!60!black,linkcolor=black]{hyperref}
+\definecolor{usachT}{HTML}{009688}
+\definecolor{usachO}{HTML}{E77500}
+\titleformat{\section}{\large\bfseries\color{usachT}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{usachO}}{\thesubsection}{0.5em}{}
+\setlist{itemsep=1pt,topsep=2pt}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+\newcommand{\SoC}{\mathrm{SoC}}
+\newcommand{\di}[1]{\begin{quote}\itshape «#1»\end{quote}}
+
+\begin{document}
+{\Large\bfseries\color{usachT} Pauta de la reunión-exposición de tesis}\\[2pt]
+Prof.\ Enrique Espina · lunes 9 de noviembre de 2026, 17:00 · Laboratorio E2Tech\\
+Material: \texttt{laminas\_reunion\_9nov\_v6.pdf} (lámina 1: niveles de control; lámina 2: operación completa, caso general).
+
+\section{Objetivo y orden de la exposición ($\approx$ 20 min + conversación)}
+\begin{enumerate}
+  \item \textbf{Lámina 1 ($\approx$ 4 min):} mostrar que cada nivel queda definido por lo que \emph{entra}, lo que \emph{decide} y lo que \emph{sale y a quién}, y dónde corre en la simulación en tiempo real.
+  \item \textbf{Lámina 2 ($\approx$ 4 min):} recorrer la operación completa con $N_a$, $N_b$ y $N_c$ micro-redes, separada en PC, controladores y simulador.
+  \item \textbf{Puntos por aclarar ($\approx$ 10 min):} presentar las propuestas de la sección 4 y pedir su opinión. Orden sugerido: 4 (cómo llega la corrección) → 1 (ventana $H$) → 3 (rango en la trayectoria) → 5 (IC grid-supporting) → 2 (objetivo).
+  \item \textbf{Tiempo real (resto):} cerrar qué quiere ver él en tiempo real y con qué plataforma (sección 5).
+\end{enumerate}
+\textbf{Regla para hoy:} anotar textual lo que diga en cada punto y, al final, repetir en voz alta los acuerdos.
+
+\section{Guion de la lámina 1: niveles de control}
+\textbf{Cómo leerla:} cada fila es un nivel y se lee de izquierda a derecha. La primera columna dice el nivel, cada cuánto actúa y dónde corre en tiempo real. Las entradas en color vienen del nivel de ese color.
+
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.9cm}XXX}
+\toprule
+Nivel & Entra (mide o recibe) & Decide & Sale → a quién\\
+\midrule
+Terciario\newline 15 min · PC & Pronósticos de clientes por fase ($\hat P_{L,\phi}$), de FV ($\hat P_{\mathrm{PV},k}$), EV (llegada, salida, $E_{\mathrm{req}}$), tarifa $c(t)$, potencia de cabecera $S_{h,\phi}$, $\SoC_k$ & Optimiza con ventana $H=12$ h: costo de compra + desbalance, con el rango de SoC en toda la trayectoria & Plan $P^*_k,Q^*_k$ → IC$_k$; rango $[\SoC^{\min}_k,\SoC^{\max}_k]$ → secundario $k$ y lazo rápido\\
+Lazo rápido\newline $\sim$1 s · controlador & $i_{abc},v_{abc}$ en la cabecera → $I_0$, $I_2$; rango de SoC & Lleva $I_0,I_2\to0$; corrige lo medido, no el plan; usa $Q$ primero & $\Delta P_k,\Delta Q_k$ → IC$_k$ (reparto por definir)\\
+Secundario\newline s · controlador & $V_{dc,k}$, SoC de su BESS y EV, $P_{\mathrm{PV}}$ disponible, rango de SoC & Restaura $V_{dc,k}$, reparte entre sus DER, cuida límites. No ve la cabecera ni otras MR & $V^*_{dc,d}$ → primario de cada DER; $\SoC_k$ → terciario\\
+Primario\newline ms · controlador + simulador & DER: $V_{dc,k}$ y su referencia. IC: $P_{\mathrm{ref},k}=P^*_k+\Delta P_k$, $Q_{\mathrm{ref},k}=Q^*_k+\Delta Q_k$, $v_\phi$ & DER: droop $V_{dc}$–$P$. IC: grid-supporting en AC (droop $P$–$V$ y $Q$–$V$) & Corriente a la barra DC; $p_k,q_k$ a la fase $\phi$ (las ve la cabecera)\\
+\bottomrule
+\end{tabularx}
+
+\textbf{Frase de entrada:}
+\di{Profesor, ordené los niveles para que cada uno quede definido por tres cosas: lo que mide o recibe, lo que decide y a quién le envía. Así se ve que el secundario nunca ve la cabecera, y que la consigna del IC es la suma del plan del terciario y la corrección del lazo rápido.}
+
+\textbf{Tres ideas que deben quedar claras:}
+\begin{enumerate}
+  \item El \textbf{secundario es uno por micro-red} y no ve la cabecera ni a las demás micro-redes. Coordina solo sus DER.
+  \item El \textbf{rango de SoC} no reparte según el tamaño de la batería: acota la energía que cada micro-red puede usar en el intervalo y deja margen para la corrección.
+  \item El \textbf{lazo rápido corrige lo medido}, no el plan, porque el plan puede venir desbalanceado a propósito (por costo o por energía).
+\end{enumerate}
+
+\section{Guion de la lámina 2: operación completa (caso general)}
+\textbf{Las tres franjas son la partición para tiempo real:} arriba el PC host (terciario), al medio los controladores en hardware externo (lazo rápido, secundarios y primarios) y abajo el simulador de tiempo real con la planta (alimentador 3$\phi$-4H, clientes monofásicos sin gestión y las micro-redes con la etapa de potencia de sus convertidores). Cada columna es una fase; las copias apiladas indican que cada fase tiene $N_\phi$ micro-redes iguales en estructura.
+
+\textbf{Recorrido sugerido, siguiendo una perturbación:}
+\begin{enumerate}
+  \item \textbf{$t=0$:} un cliente de la fase $a$ conecta 3 kW. La corriente de neutro sube en $3000/220\approx13{,}6$ A.
+  \item \textbf{Milisegundos:} el IC sigue su consigna y su droop grid-supporting reacciona a la tensión local $v_a$ (si el modelo del alimentador tiene impedancia).
+  \item \textbf{Segundos:} el lazo rápido mide $I_0$ e $I_2$ más altos y envía $\Delta P,\Delta Q$ a los IC de la fase $a$ (y, si corresponde, carga en $b$ y $c$), sin sacar a ninguna micro-red de su rango.
+  \item \textbf{Dentro de cada micro-red:} el IC entrega más potencia, baja $V_{dc}$, los DER responden por droop y el secundario restaura $V_{dc}$ y reparte entre BESS y EV.
+  \item \textbf{Siguiente intervalo de 15 min:} el terciario ve el SoC más bajo y el nuevo pronóstico, y replanifica el plan y el rango.
+\end{enumerate}
+\di{Este diagrama es lo que se llevaría a tiempo real: cada franja corre en un equipo distinto, y las flechas que cruzan entre franjas son las señales de I/O y los mensajes de la red de comunicación.}
+
+\section{Puntos por aclarar: propuesta y pregunta para el profesor}
+
+\subsection*{Punto 1. Duración de la ventana $H$ → propuesta: $H=12$ h}
+\textbf{Criterio:} la ventana debe ver completo el evento más largo que se quiere gestionar ($H\ge T_{\mathrm{evento}}$). Es la conclusión del caso simple: con una ventana más corta, el terciario no ve que la demanda sigue y gasta la energía al principio.
+\begin{itemize}
+  \item Punta de la tarde (18–22 h): 4 h.
+  \item Excedente FV de mediodía hasta el fin de la punta: $\approx$ 10 h. Es lo que decide cuánto guardar para la tarde.
+  \item Sesión EV nocturna (llega $\sim$19 h, sale $\sim$7 h): $\approx$ 12 h. El terciario necesita ver la hora de salida para cumplir $E_{\mathrm{req}}$.
+\end{itemize}
+$H=12$ h son 48 pasos de 15 min en horizonte deslizante. Se propone además una sensibilidad con $H\in\{4,8,12,24\}$ h.\\
+\textbf{Verdad cruda:} las horas son típicas y supuestas; hay que validarlas con perfiles reales de demanda, FV y EV.\\
+\textbf{Pregunta:} \emph{«¿Le parece bien justificar $H$ con el evento más largo, o prefiere fijarlo por costo computacional?»}
+
+\subsection*{Punto 2. ¿Energía comprada o costo? → ambas, en un solo objetivo}
+\[
+J=\sum_{t\in\mathcal T_H}\Big[c(t)\,P^{+}_{\mathrm{imp}}(t)\,\Delta t+w_U\big(|B(t)|^2+|C(t)|^2\big)\Big]
+\]
+\begin{itemize}
+  \item Con tarifa plana ($c$ constante), minimizar el costo equivale a minimizar la energía comprada.
+  \item Con tarifa horaria, los dos resultados difieren.
+  \item Por eso no conviene poner dos términos separados: con tarifa plana serían el mismo término y el peso entre ellos quedaría indefinido.
+  \item Los resultados pueden mostrar ambos casos (tarifa plana y horaria) con la misma formulación.
+\end{itemize}
+\textbf{Pregunta:} \emph{«¿Usamos tarifa plana como caso base y la horaria como variante?»}
+
+\subsection*{Punto 3. Rango de SoC → en toda la trayectoria}
+\[
+\SoC^{\min}_k\le \SoC_k(t)\le \SoC^{\max}_k,\qquad \forall\,t\in[t_0,\,t_0+15\ \mathrm{min}]
+\]
+\begin{itemize}
+  \item Con el plan solo, $P^*_k$ es constante en el paso y el SoC es lineal: basta revisar los extremos del intervalo.
+  \item Lo que obliga a cuidar toda la trayectoria es la corrección $\Delta P_k$. Hay que saturarla en tiempo real con el margen
+  $m_k(t)$: si $\SoC_k(t)$ llega a $\SoC^{\min}_k$, la micro-red no puede seguir descargando; si llega a $\SoC^{\max}_k$, no puede seguir cargando.
+  \item Quien lo hace cumplir dentro de la micro-red es el secundario, que ya cuida los límites de BESS y EV.
+\end{itemize}
+
+\subsection*{Punto 4. ¿Cómo llega la corrección a los IC? → tres alternativas}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.3cm}XXX}
+\toprule
+Alternativa & Cómo funciona & A favor & En contra\\
+\midrule
+A. Centralizada, despacho por IC [1,2] & La cabecera invierte $I_0,I_2$ en $\Delta P_\phi,\Delta Q_\phi$ y reparte $\Delta P_k=\alpha_k\Delta P_\phi$, con $\alpha_k=m_k/\sum_{j\in\mathcal N_\phi}m_j$ & Exacta y simple & Debe conocer el margen de cada MR; comunicación con todas; punto único de falla\\
+B. Señal común por fase + saturación local [3,4] & Una señal integral $u_\phi$ por fase, difundida a sus MR: $\Delta P_k=\mathrm{sat}_{m_k(t)}(u_\phi P_{\mathrm{nom},k})$ & No necesita conocer márgenes; el integrador compensa a las MR saturadas; una señal por fase & El reparto no es proporcional al margen\\
+C. Consenso dentro de cada fase [5,6,7] & Una MR líder recibe $\Delta P_\phi$; las MR de la fase consensan $\lambda_\phi=\Delta P_k/m_k$ & Reparto proporcional al margen, sin coordinador; línea de su tesis doctoral & La dinámica del consenso se suma a la del lazo\\
+\bottomrule
+\end{tabularx}
+
+\textbf{Propuesta:} B como línea base (la más rápida de implementar en tiempo real), C como aporte de la tesis y A como referencia ideal para comparar. Con el IC grid-supporting, $\Delta P_k$ desplaza el punto de operación de la curva droop, igual que el secundario en [8].\\
+\textbf{Conexión con el tiempo real:} B y C se distinguen justamente en lo que el tiempo real permite probar (retardos, pérdida de paquetes, desconexión de una micro-red). Es un buen argumento para elegir C como aporte.\\
+\textbf{Pregunta:} \emph{«¿Cuál ve más alineada con lo que espera de la tesis? Mi propuesta es B como base y C como aporte.»}
+
+\subsection*{Punto 5. IC en AC → grid-supporting (confirmado)}
+\[
+p_k=P_{\mathrm{ref},k}-\frac{v_\phi-V_0}{m_P},\qquad q_k=Q_{\mathrm{ref},k}-\frac{v_\phi-V_0}{n_Q}
+\]
+\begin{itemize}
+  \item En BT la red es resistiva, así que el acople $P$–$V$ pesa tanto como el $Q$–$V$.
+  \item \textbf{Consecuencia 1:} hay que modelar la impedancia del alimentador. Con una cabecera rígida, $v_\phi$ no cambia y el droop no actúa.
+  \item \textbf{Consecuencia 2:} el droop (ms, tensión local) y el lazo rápido (s, corriente de cabecera) corrigen el mismo desbalance. Se pueden duplicar u oponer, así que hay que coordinarlos (separación de escalas de tiempo y el mismo límite de SoC).
+\end{itemize}
+
+\section{Simulación en tiempo real: qué cambia}
+\subsection*{Partición (lámina 2)}
+\begin{itemize}
+  \item \textbf{Simulador de tiempo real:} alimentador 3$\phi$-4H con impedancias, clientes, y micro-redes con la etapa de potencia de sus convertidores. Paso fijo; con modelos promedio, del orden de 20–50 µs. Los modelos conmutados exigen pasos bajo el microsegundo y FPGA.
+  \item \textbf{Controladores en el lazo (CHIL):} primarios, secundarios y lazo rápido en hardware externo, conectados por I/O analógicas (medidas), digitales (PWM o consignas) y una red de comunicación real.
+  \item \textbf{PC host:} el terciario (por ejemplo Python con cvxpy), que envía plan y rango por Ethernet cada 15 min. El problema con $H=12$ h tiene 48 pasos y se resuelve en segundos, muy por debajo del periodo.
+\end{itemize}
+
+\subsection*{El problema de las escalas de tiempo}
+En tiempo real, un día de operación del terciario dura un día de reloj. Hay dos formas de manejarlo:
+\begin{enumerate}
+  \item \textbf{Ventanas en tiempo real verdadero ($\kappa=1$):} se prueba, por ejemplo, la punta de 18 a 22 h (4 h de reloj) con el plan del terciario. Es la forma correcta de evaluar el lazo rápido y el secundario.
+  \item \textbf{Tiempo comprimido por un factor $\kappa$:} se dividen las energías $E_k$ y $E_{\mathrm{req}}$ por $\kappa$ y se comprimen los perfiles. Como $\dot{\SoC}=-P/E$, el SoC evoluciona $\kappa$ veces más rápido con las mismas potencias. Con $\kappa=30$, un paso de 15 min dura 30 s y un día dura 48 min.\\
+  \textbf{Verdad cruda:} la compresión distorsiona la contabilidad de energía del lazo rápido, porque cada corrección de segundos pesa $\kappa$ veces más en el SoC. Además, el periodo del terciario debe seguir siendo mucho mayor que el del lazo rápido (30 s frente a 1 s es justo). Sirve para probar el terciario en el día completo, no para evaluar el lazo rápido.
+\end{enumerate}
+
+\subsection*{Riesgos y decisiones}
+\begin{itemize}
+  \item \textbf{Tamaño del caso general:} $N_a+N_b+N_c$ micro-redes con sus convertidores pueden no caber en el simulador sin overruns. Habrá que limitar $N_\phi$ o agrupar micro-redes en equivalentes.
+  \item \textbf{Plataforma:} por definir. PLECS RT Box es la opción natural porque el modelo se trabaja en PLECS; conviene preguntar qué equipo hay en E2Tech o en el laboratorio de la U. de Chile.
+  \item \textbf{Alcance:} empezar con modelos promedio y foco en el lazo rápido y el secundario; dejar el día completo con el terciario para la etapa final.
+\end{itemize}
+
+\subsection*{Preguntas para el profesor}
+\begin{enumerate}
+  \item \emph{«¿Qué quiere ver en tiempo real: el lazo rápido y el secundario con comunicación real, o el día completo con el terciario?»}
+  \item \emph{«¿Qué plataforma tendríamos disponible (RT Box, OPAL-RT, Typhoon, dSPACE) y con qué controladores externos?»}
+  \item \emph{«¿Le parece usar compresión de tiempo para el terciario y tiempo real verdadero para las ventanas del lazo rápido?»}
+\end{enumerate}
+
+\section{Preguntas probables y respuestas cortas}
+\begin{itemize}
+  \item \textbf{«¿Por qué el secundario no ve la cabecera?»} Porque el balance entre fases lo deciden el terciario (plan) y el lazo rápido (corrección). El secundario se entera de todo por su propio $V_{dc}$: si el IC entrega más, $V_{dc}$ baja y los DER responden.
+  \item \textbf{«¿Por qué $Q$ primero?»} Porque $Q$ no consume energía de la batería, solo capacidad del inversor. Solo $P$ reduce el desbalance de potencia activa, y $P$ gasta energía del rango.
+  \item \textbf{«¿Qué pasa si una micro-red llega al borde de su rango?»} Su corrección se satura (punto 3). En la alternativa B, el integrador sube $u_\phi$ y las demás micro-redes de la fase aportan más; si todas están saturadas, el desbalance queda sin corregir, como en el caso simple.
+  \item \textbf{«¿Por qué 12 h y no 24 h?»} 12 h cubren el evento más largo (la sesión EV nocturna) con la mitad de las variables. La sensibilidad con 24 h dirá si se pierde algo.
+  \item \textbf{«¿Cómo se evita que el droop del IC y el lazo rápido peleen?»} Con separación de escalas (ms frente a s) y porque el lazo rápido corrige con lo medido en la cabecera, que ya incluye el efecto del droop. Hay que verificarlo en simulación.
+\end{itemize}
+
+\section{Cierre}
+\di{Con esto, mi siguiente paso es armar el modelo promedio en PLECS con una micro-red por fase, implementar la alternativa B del lazo rápido y dejar listo el modelo para pasarlo a tiempo real. ¿Le parece?}
+\textbf{Al salir, anotar:} decisión sobre la alternativa 4, valor de $H$, tarifa base, plataforma de tiempo real y fecha de la próxima entrega.
+
+\section{Referencias}
+\begin{enumerate}[label={[\arabic*]},leftmargin=*,itemsep=2pt]
+  \small
+  \item I. Mexis, G. Todeschini, Z. Zhou, «Coordinated Control of Three Single-Phase BESS Inverters Using Local Measurements to Mitigate Voltage Unbalance», \emph{IEEE Trans.\ Energy Conversion}, 2022. \href{https://cronfa.swansea.ac.uk/Record/cronfa61052/Download/61052__25368__35dfd823984a46369995096bae02a94a.pdf}{PDF (Swansea)}
+  \item M. Savaghebi et al., «Secondary Control Scheme for Voltage Unbalance Compensation in an Islanded Droop-Controlled Microgrid», \emph{IEEE Trans.\ Smart Grid}, 2012. \href{https://vbn.aau.dk/ws/files/61862782/PREPRINT_secondary_control_scheme_for_voltage_unbalance_compensation.pdf}{PDF (AAU)}
+  \item E. Dall'Anese, A. Simonetto, «Optimal Power Flow Pursuit», \emph{IEEE Trans.\ Smart Grid}, 2018. \href{https://arxiv.org/abs/1601.07263}{arXiv}
+  \item A. Bernstein, E. Dall'Anese, «Real-Time Feedback-Based Optimization of Distribution Grids: A Unified Approach», \emph{IEEE Trans.\ Control of Network Systems}, 2019. \href{https://arxiv.org/abs/1711.01627}{arXiv}
+  \item E. Espina, «Distributed secondary control of hybrid AC/DC microgrids», tesis doctoral, U.\ de Chile / U.\ of Waterloo, 2021. \href{https://repositorio.uchile.cl/handle/2250/182292}{Repositorio U.\ de Chile}
+  \item L. Meng et al., «Distributed Voltage Unbalance Compensation in Islanded Microgrids by Using a Dynamic Consensus Algorithm», \emph{IEEE Trans.\ Power Electronics}, 31(1), 2016. \href{https://vbn.aau.dk/ws/files/208630151/trans_manu_doublecol_02242015.pdf}{PDF (AAU)}
+  \item C. Burgos-Mellado et al., «Distributed Control Strategy Based on a Consensus Algorithm and on the Conservative Power Theory for Imbalance and Harmonic Sharing in 4-Wire Microgrids», \emph{IEEE Trans.\ Smart Grid}, 11(2), 2020. \href{https://repositorio.uchile.cl/handle/2250/174266}{Repositorio U.\ de Chile}
+  \item J. M. Guerrero et al., «Hierarchical Control of Droop-Controlled AC and DC Microgrids», \emph{IEEE Trans.\ Industrial Electronics}, 58(1), 2011. \href{https://doi.org/10.1109/TIE.2010.2066534}{DOI}
+  \item M. O. Faruque et al., «Real-Time Simulation Technologies for Power Systems Design, Testing, and Analysis», \emph{IEEE Power and Energy Technology Systems Journal}, 2(2), 2015. \href{https://infoscience.epfl.ch/record/210998/files/07138557.pdf?version=1}{PDF (EPFL)}
+  \item H. Tu, Y. Du, H. Yu, S. Lukic et al., «A Hardware-in-the-Loop Real-Time Testbed for Microgrid Hierarchical Control», ECCE, 2018. \href{https://www.freedm.ncsu.edu/wp-content/uploads/2018/10/ECCE-2018-HIL-Testbed-for-Microgrid-Control-Tu-Du-Lu-Lukic.pdf}{PDF}
+  \item Aguilar et al., «RT Box card for studying the control communication impacts on microgrid performance and stability», \emph{HardwareX}, 2022. \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9184748/}{Acceso libre}
+  \item E. Espina et al., «Experimental Hybrid AC/DC-Microgrid Prototype for Laboratory Research», EPE'20 ECCE Europe, 2020. \href{https://investigadores.anid.cl//en/public_search/work?id=822381}{Ficha ANID}
+\end{enumerate}
+\textbf{Si alcanzas a leer solo dos antes de las 17:00:} la figura de control de [1] (alternativa A, el caso más parecido) y la del banco de [10] (cómo se reparte un control jerárquico en tiempo real).
+\end{document}

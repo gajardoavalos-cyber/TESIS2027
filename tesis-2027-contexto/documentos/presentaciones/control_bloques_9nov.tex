@@ -1,0 +1,342 @@
+% =====================================================================
+%  Propuesta de tema de tesis — Reunión con Prof. Enrique Espina (26-10-2026)
+%  Felipe Gajardo Ávalos · Magíster en Ciencias de la Ingeniería, USACH
+%  Formato: plantilla de clases de Circuitos Eléctricos I (USACH)
+%  Compilar con XeLaTeX (dos pasadas): xelatex propuesta_tesis_usach.tex
+%  Requiere en fig/: fondo_usach_portada.png y fondo_usach_contenido.png
+%  Láminas R0–R10: respaldo para preguntas (enlazadas con botones)
+% =====================================================================
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[aspectratio=169,10pt,t]{beamer}
+
+\usefonttheme{professionalfonts}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{spanish}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,array,tabularx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing,decorations.markings,shapes.geometric,shapes.symbols,shapes.misc}
+\graphicspath{{fig/}}
+
+% ------------------------------- Colores USACH -----------------------
+\definecolor{usachT}{HTML}{009688}
+\definecolor{usachTd}{HTML}{007B73}
+\definecolor{usachO}{HTML}{E77500}
+\definecolor{usachOl}{HTML}{FDF0E3}
+\definecolor{usachR}{HTML}{E53935}
+\definecolor{faseA}{HTML}{C0392B}
+\definecolor{faseB}{HTML}{2E8B57}
+\definecolor{faseC}{HTML}{1F5FAF}
+
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{structure}{fg=usachT}
+\setbeamercolor{frametitle}{fg=usachT}
+\setbeamercolor{alerted text}{fg=usachR}
+\setbeamercolor{block title}{fg=white,bg=usachT}
+\setbeamercolor{block body}{fg=black,bg=white}
+\setbeamercolor{block title alerted}{fg=usachR,bg=}
+\setbeamercolor{block body alerted}{fg=black,bg=}
+\setbeamercolor{block title example}{fg=white,bg=usachO}
+\setbeamercolor{block body example}{fg=black,bg=white}
+\setbeamercolor{button}{bg=usachO,fg=white}
+\setbeamertemplate{blocks}[default]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{usachT}\scriptsize$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{usachT}\tiny$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{usachT}\bfseries\insertenumlabel.}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamerfont{block title}{size=\normalsize}
+\setbeamerfont{button}{size=\tiny}
+
+\setbeamersize{text margin left=2.75cm,text margin right=0.55cm}
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_contenido.png}}
+\setbeamertemplate{headline}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[fill=usachT!55,text=white,rounded corners=1.5pt,font=\tiny,inner sep=2pt,anchor=north east]
+      at ([xshift=-0.22cm,yshift=-0.16cm]current page.north east) {\insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}}
+\setbeamertemplate{frametitle}{\vskip0.42cm\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par\vskip0.12cm}
+\setbeamertemplate{footline}{\vbox to 0.72cm{}}
+
+\newcommand{\thead}{\rowcolor{usachO}}
+\newcommand{\Th}[1]{\textcolor{white}{\textbf{#1}}}
+% Botón a lámina de respaldo / volver al mapa
+\newcommand{\resp}[2]{\hyperlink{#1}{\beamerbutton{#2}}}
+\newcommand{\volver}{\begin{tikzpicture}[remember picture,overlay]\node[anchor=south east] at ([xshift=-0.3cm,yshift=0.95cm]current page.south east){\hyperlink{mapa}{\beamerreturnbutton{Volver al mapa de respaldo}}};\end{tikzpicture}}
+
+% ------------------------------- Macros -------------------------------
+\newcommand{\Pic}[1]{P_{\mathrm{IC},#1}}
+\newcommand{\Qic}[1]{Q_{\mathrm{IC},#1}}
+\newcommand{\PB}[1]{P_{\mathrm{B},#1}}
+\newcommand{\SOC}[1]{\mathrm{SOC}_{#1}}
+\newcommand{\SOCw}{\overline{\mathrm{SOC}}_{w}}
+\newcommand{\Nset}[1]{\mathcal{N}_{#1}}
+
+\tikzset{
+  blk/.style={draw,rounded corners=2pt,minimum height=0.9cm,align=center,font=\footnotesize,line width=.5pt},
+  ac/.style={blk,fill=gray!12},
+  ic/.style={blk,fill=usachT!10,draw=usachT},
+  co/.style={blk,fill=usachO!12,draw=usachO},
+  pw/.style={{Latex[length=2mm]}-{Latex[length=2mm]},line width=.7pt},
+  sg/.style={-{Latex[length=2mm]},dashed,line width=.6pt,usachO},
+  fl/.style={-{Latex[length=2mm]},line width=.7pt},
+  card/.style={draw=usachT,line width=.6pt,rounded corners=2pt,fill=white,align=left,text width=#1,inner sep=5pt,font=\footnotesize},
+  house/.pic={\fill[#1!75] (-0.13,0) rectangle (0.13,0.2); \fill[#1] (-0.17,0.2) -- (0,0.36) -- (0.17,0.2) -- cycle;},
+}
+
+\begin{document}
+\newcommand{\abierto}[1]{\tikz[baseline=-0.6ex]\node[circle,fill=usachR,text=white,font=\tiny\bfseries,inner sep=0.6pt,minimum size=9pt]{#1};}
+\colorlet{cT}{usachO}\colorlet{cL}{faseB}\colorlet{cS}{usachT}\colorlet{cP}{faseC}\colorlet{azul}{blue!70!black}
+\tikzset{
+  sumn/.style={circle,draw=azul,line width=.9pt,fill=white,minimum size=0.42cm,inner sep=0pt,font=\scriptsize},
+  nube/.style={cloud,cloud puffs=11,draw=azul,line width=1.1pt,fill=white,aspect=1.8,align=center,font=\scriptsize\bfseries,inner sep=0pt},
+  cb/.style={draw=azul,line width=.9pt,fill=white,align=center,font=\scriptsize,inner sep=2.5pt},
+  sig/.style={-{Latex[length=2mm]},line width=.8pt,azul},
+  sigT/.style={-{Latex[length=2mm]},line width=1.1pt,cT},
+  sigL/.style={-{Latex[length=2mm]},line width=1.1pt,cL,densely dashed},
+  sigS/.style={-{Latex[length=2mm]},line width=.9pt,cS},
+  med/.style={-{Latex[length=2mm]},line width=.7pt,gray!70!black,densely dashed},
+  pot/.style={line width=1.4pt,black},
+  gain/.style={isosceles triangle,isosceles triangle apex angle=60,draw=azul,line width=.9pt,fill=white,inner sep=0.5pt,minimum height=0.55cm,shape border rotate=180,font=\scriptsize},
+  dot/.style={circle,fill=black,inner sep=1.1pt},
+}
+
+% =====================================================================
+{
+\usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{fondo_usach_portada.png}}
+\setbeamertemplate{headline}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[text=white,font=\small,anchor=north west] at ([xshift=0.45cm,yshift=-0.35cm]current page.north west) {9 de noviembre de 2026};
+    \node[text=white,align=center,anchor=north,text width=14.5cm] at ([yshift=-4.55cm]current page.north) {%
+      {\fontsize{15}{17}\selectfont Arquitectura de control por niveles\\[1pt] en diagramas de bloques}\\[4pt]
+      {\normalsize Qué mide, qué decide y a quién envía cada nivel}\\[3pt]
+      {\scriptsize\bfseries Magíster en Ciencias de la Ingeniería, mención Electricidad}\\[3pt]
+      {\scriptsize\bfseries Estudiante: Felipe Gajardo Ávalos}\\[1pt]
+      {\scriptsize Profesor guía: Dr. Enrique Espina González}\\[1pt]
+      {\scriptsize Departamento de Ingeniería Eléctrica, USACH}};
+  \end{tikzpicture}
+\end{frame}
+}
+
+% =====================================================================
+\begin{frame}{Cómo leer los diagramas}
+  \vspace{0.15cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \node[cb,minimum width=1.5cm,minimum height=0.7cm] at (0,0) {Bloque};
+    \node[text width=3.6cm,anchor=west] at (1.0,0) {\textbf{Decide o calcula} algo con lo que le entra.};
+    \node[sumn] at (0,-1.0) {$+$};
+    \node[text width=3.6cm,anchor=west] at (1.0,-1.0) {\textbf{Suma} señales (con signo $+$ o $-$).};
+    \node[gain] at (0,-2.0) {$k$};
+    \node[text width=3.6cm,anchor=west] at (1.0,-2.0) {\textbf{Ganancia}: multiplica la señal por $k$.};
+    \node[nube,minimum width=1.6cm,minimum height=0.8cm] at (0,-3.1) {Info};
+    \node[text width=3.6cm,anchor=west] at (1.0,-3.1) {\textbf{Fuente externa} de información.};
+    \draw[sigT] (6.2,0) -- (7.4,0); \node[anchor=west,text width=3.9cm] at (7.6,0) {Consigna del \textbf{terciario} (minutos).};
+    \draw[sigL] (6.2,-1.0) -- (7.4,-1.0); \node[anchor=west,text width=3.9cm] at (7.6,-1.0) {Corrección del \textbf{lazo rápido} (segundos).};
+    \draw[sigS] (6.2,-2.0) -- (7.4,-2.0); \node[anchor=west,text width=3.9cm] at (7.6,-2.0) {Señal del \textbf{secundario} de la micro-red.};
+    \draw[med] (6.2,-3.1) -- (7.4,-3.1); \node[anchor=west,text width=3.9cm] at (7.6,-3.1) {\textbf{Medición} que sube a un nivel superior.};
+    \draw[pot] (6.2,-4.0) -- (7.4,-4.0); \node[anchor=west,text width=3.9cm] at (7.6,-4.0) {\textbf{Potencia} (circuito eléctrico).};
+    \node at (0,-4.0) {\abierto{4}}; \node[text width=3.6cm,anchor=west] at (1.0,-4.0) {\textbf{Punto por aclarar} con el profesor.};
+  \end{tikzpicture}
+
+  \vspace{0.2cm}
+  \begin{tikzpicture}\node[card=12.2cm,draw=usachO] {\textbf{\color{usachO}Regla de oro:} siguiendo una flecha se sabe \textbf{qué mide} un nivel (lo que le entra), \textbf{qué decide} (su bloque) y \textbf{a quién envía} (dónde termina su flecha de salida).};\end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Niveles de control: vista general}
+  \centering
+  \resizebox{!}{6.05cm}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    % regiones anidadas
+    \fill[yellow!22,rounded corners=18pt] (0,0) rectangle (14.3,8.1);
+    \fill[yellow!55,rounded corners=16pt] (3.25,0.32) rectangle (14.05,7.8);
+    \foreach \d in {0.3,0.15}{\fill[blue!5,draw=blue!35,rounded corners=12pt] (6.2+\d,0.72+\d) rectangle (13.0+\d,6.45+\d);}
+    \fill[blue!10,draw=blue!50,rounded corners=12pt] (6.2,0.72) rectangle (13.0,6.45);
+    \node[anchor=north west,font=\scriptsize\bfseries,cT!80!black] at (0.3,7.95) {TERCIARIO};
+    \node[anchor=north west,font=\tiny,cT!80!black] at (0.3,7.6) {centralizado · cada 15 min};
+    \node[anchor=north west,font=\scriptsize\bfseries,cL!80!black] at (3.5,7.65) {LAZO RÁPIDO};
+    \node[anchor=north west,font=\tiny,cL!80!black] at (3.5,7.3) {segundos};
+    \node[anchor=north west,font=\scriptsize\bfseries,blue!55!black] at (6.35,6.38) {MICRO-RED DC $k$ (una por IC; $k\in\mathcal N_\phi$)};
+    \node[anchor=north west,font=\tiny,blue!55!black] at (6.35,6.03) {DER grid-supporting (droop) · secundario propio};
+    % alimentador
+    \draw[line width=2.2pt] (14.75,0.45) -- (14.75,7.95);
+    \node[ac,minimum width=1.0cm,minimum height=0.5cm,font=\tiny] at (14.75,8.35) {S/E};
+    \node[rotate=90,font=\scriptsize\bfseries] at (15.15,3.6) {Alimentador BT 3$\phi$-4W};
+    \node[circle,draw,line width=.8pt,fill=white,inner sep=1pt,font=\tiny] (M) at (14.75,7.25) {M};
+    % terciario
+    \node[nube,minimum width=2.5cm,minimum height=1.25cm] (nub) at (1.6,5.75) {Pronósticos\\ tarifa \abierto{2}};
+    \node[cb,draw=cT,line width=1.1pt,text width=2.35cm,minimum height=1.45cm] (T) at (1.6,3.45) {\textbf{Terciario}\\ optimización\\ ventana $H$ \abierto{1}};
+    \draw[sig] (nub) -- node[right,font=\tiny,black,align=left]{$\hat S_{L,\phi},\hat P_{PV}$\\ EV} (T);
+    % lazo rapido
+    \node[cb,draw=cL,line width=1.1pt,text width=2.2cm,minimum height=1.3cm] (L) at (4.85,4.85) {\textbf{Lazo rápido}\\ reduce el\\ desbalance \textbf{medido}};
+    \draw[med] (M.west) -- node[above,font=\tiny,black,pos=.35]{$I_0,\,I_2$ medidos en cabecera} (4.85,7.25) -- (L.north);
+    \draw[med] (3.05,7.25) -- (3.05,3.85) -- node[above,font=\tiny,black]{$S_{h,\phi}$} ([yshift=0.4cm]T.east);
+    \fill[gray!70!black] (3.05,7.25) circle (1.2pt);
+    % micro-red: DER
+    \foreach \y/\n in {5.35/FV,4.35/BESS,3.35/EV}{
+      \node[cb,minimum width=0.95cm,minimum height=0.55cm] (d\n) at (6.95,\y) {\n};
+      \node[cb,minimum width=0.95cm,minimum height=0.55cm,font=\tiny,align=center] (c\n) at (8.05,\y) {DC/DC\\droop};
+      \draw[pot] (d\n) -- (c\n); \draw[pot] (c\n.east) -- (8.95,\y);
+    }
+    \draw[line width=2pt,blue!50!black] (8.95,2.95) -- (8.95,5.65) node[right,font=\tiny]{$V_{dc,k}$};
+    % IC
+    \node[cb,minimum width=1.1cm,minimum height=0.8cm,font=\tiny] (IC) at (10.15,4.35) {DC/AC\\ IC$_k$};
+    \draw[pot] (8.95,4.35) -- (IC.west);
+    \draw[pot] (IC.east) -- (14.75,4.35);
+    \foreach \x in {14.15,14.27,14.39}{\draw[line width=.6pt] (\x-0.08,4.2) -- (\x+0.08,4.5);}
+    \node[dot] (pm) at (12.4,4.35) {};
+    \node[above,font=\tiny] at (12.4,4.4) {$i,\,v$};
+    % control del IC
+    \node[cb,text width=1.75cm,minimum height=0.75cm] (CI) at (10.15,2.5) {\textbf{Control IC}\\ PLL + PR \abierto{5}};
+    \draw[sig] (CI) -- node[right,font=\tiny]{PWM} (IC);
+    \draw[med] (pm) -- (12.4,2.5) -- (CI.east);
+    \node[sumn] (S) at (10.15,1.05) {$+$};
+    \draw[sig] (S) -- node[right,font=\tiny]{$P_{ref},Q_{ref}$} (CI);
+    % secundario
+    \node[cb,draw=cS,line width=1.1pt,text width=1.9cm,minimum height=0.75cm] (SE) at (7.45,1.8) {\textbf{Secundario}\\ MR $k$};
+    \draw[med] (8.95,2.95) -- (8.95,1.8) -- node[above,font=\tiny,black]{$V_{dc},$\,SoC} (SE.east);
+    \draw[sigS] ([xshift=0.55cm]SE.north) -- node[right,font=\tiny,black]{refs.} ([xshift=0.55cm]SE.north |- cEV.south);
+    % salidas del terciario
+    \draw[sigT] ([xshift=-0.4cm]T.south) -- ++(0,-2.62) coordinate (tb) -- (S.south |- tb) -- node[right,font=\tiny,black,pos=.5]{$+$} (S.south);
+    \node[font=\tiny,black,anchor=south west] at ([xshift=0.15cm]tb) {$P^*_{\mathrm{IC},k},\,Q^*_{\mathrm{IC},k}$ (plan)};
+    \draw[sigT] ([yshift=-0.45cm]T.east) -- (6.85,3.0) -- node[left,font=\tiny,black,pos=.4]{rango SoC$_k$ \abierto{3}} (6.85,2.18);
+    \draw[med] (SE.west) -- (2.3,1.8) node[above right,font=\tiny,black]{SoC$_k$} -- (2.3,2.72);
+    % salida del lazo rapido
+    \draw[sigL] (L.south) -- (4.85,1.05) -- node[above,font=\tiny,black,pos=.3]{$\Delta P_k,\,\Delta Q_k$ \abierto{4}} node[below,font=\tiny,black,pos=.97]{$+$} (S.west);
+  \end{tikzpicture}}
+
+  \vspace{1pt}
+  {\scriptsize\raggedright\textcolor{cT}{\textbf{Naranjo}}: plan y rango (terciario). \textcolor{cL}{\textbf{Verde}}: corrección (lazo rápido). \textcolor{cS}{\textbf{Teal}}: secundario de cada micro-red. \textbf{Gris punteado}: mediciones. Basado en el estilo de Rocabert et al. (2012), Fig.~11.\par}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Dentro de una micro-red: primario y secundario}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \fill[cyan!8,rounded corners=10pt] (-0.75,0.15) rectangle (12.6,3.85);
+    % ---- circuito de potencia
+    \node[cb,minimum width=1.0cm,minimum height=0.65cm] (B) at (0.2,4.75) {BESS};
+    \node[font=\tiny,gray!70!black,anchor=south] at (0.2,5.1) {(FV y EV: igual)};
+    \node[cb,minimum width=1.1cm,minimum height=0.65cm] (DCDC) at (1.75,4.75) {DC/DC};
+    \draw[pot] (B) -- (DCDC); \draw[pot] (DCDC.east) -- (3.3,4.75);
+    \draw[line width=2pt,blue!50!black] (3.3,4.15) -- (3.3,5.4) node[above,font=\tiny]{$V_{dc,k}$};
+    \node[cb,minimum width=1.1cm,minimum height=0.75cm,font=\tiny] (IC) at (5.4,4.75) {DC/AC\\ IC$_k$};
+    \draw[pot] (3.3,4.75) -- (IC.west);
+    \draw[pot] (IC.east) -- (6.3,4.75);
+    \draw[pot] (6.3,4.75) .. controls (6.4,5.05) and (6.5,5.05) .. (6.55,4.75) .. controls (6.6,5.05) and (6.7,5.05) .. (6.8,4.75) .. controls (6.85,5.05) and (6.95,5.05) .. (7.05,4.75);
+    \node[font=\tiny,above] at (6.68,5.0) {$L_F$};
+    \draw[pot] (7.05,4.75) -- (12.4,4.75) node[right,font=\scriptsize\bfseries]{fase $\phi$};
+    \node[dot] (pi) at (7.5,4.75) {}; \node[above,font=\tiny] at (7.5,4.8) {$i$};
+    \node[dot] (pv) at (8.0,4.75) {}; \node[above,font=\tiny] at (8.0,4.8) {$v$};
+    \node[dot] (pb) at (2.75,4.75) {}; \node[above,font=\tiny] at (2.75,4.8) {$P_B$};
+    % ---- control DC: primario (droop) + secundario
+    \node[cb,text width=1.45cm] (VI) at (1.75,3.15) {Lazo $V/I$\\ + PWM};
+    \draw[sig] (VI) -- (DCDC);
+    \node[sumn] (s1) at (1.75,2.05) {$\Sigma$};
+    \draw[sig] (s1) -- node[right,font=\tiny]{$V_{ref,B}$} (VI);
+    \node[gain] (kd) at (2.75,2.05) {$k_d$};
+    \draw[sig] (pb) -- (2.75,3.85) -- (3.15,3.85) -- (3.15,2.05) node[right,font=\tiny,pos=0]{} -- (kd.east);
+    \draw[sig] (kd) -- node[above,font=\tiny,pos=.3]{$-$} (s1);
+    \draw[sig] (1.75,0.95) node[below,font=\tiny]{$V^*_{dc}$} -- node[right,font=\tiny,pos=.75]{$+$} (s1);
+    \node[cb,draw=cS,line width=1.1pt,text width=1.6cm,minimum height=0.9cm] (SE) at (0.15,1.25) {\textbf{Secundario}\\ MR $k$};
+    \draw[sigS] (SE.north) -- (0.15,2.05) -- node[above,font=\tiny,black]{$\delta_B$} node[below,font=\tiny,black,pos=.8]{$+$} (s1.west);
+    \draw[med] (3.3,4.15) -- (3.55,4.15) -- (3.55,0.45) -- (0.15,0.45) -- node[right,font=\tiny,black]{$V_{dc}$, SoC$_B$} (SE.south);
+    \draw[sigT] (-0.75,1.25) node[left,font=\tiny,align=right,black]{rango SoC$_k$\\ (terciario)} -- (SE.west);
+    \node[font=\tiny\bfseries,cS] at (0.15,3.55) {SECUNDARIO};
+    \node[font=\tiny\bfseries,azul,align=left,anchor=west] at (2.45,1.2) {PRIMARIO DC\\ (droop)};
+    % ---- control del IC
+    \node[cb,text width=1.65cm] (PR) at (5.4,3.15) {Lazo de corriente\\ PR + PWM};
+    \draw[sig] (PR) -- node[right,font=\tiny]{$u$} (IC);
+    \node[sumn] (si) at (7.5,3.15) {$\Sigma$};
+    \draw[sig] (si) -- (PR);
+    \draw[sig] (pi) -- node[right,font=\tiny,pos=.8]{$-$} (si);
+    \node[cb,text width=2.05cm] (REF) at (9.55,3.15) {Referencia de corriente\\ $i^*=f(P_{ref},Q_{ref},\theta)$};
+    \draw[sig] (REF) -- node[above,font=\tiny]{$i^*$} node[below,font=\tiny,pos=.85]{$+$} (si);
+    \node[cb,minimum width=1.0cm] (PLL) at (9.55,1.6) {PLL};
+    \draw[sig] (pv) -- (8.0,1.6) -- (PLL.west);
+    \draw[sig] (PLL) -- node[right,font=\tiny]{$\theta$} (REF);
+    \node[sumn] (S) at (11.75,3.15) {$\Sigma$};
+    \draw[sig] (S) -- node[above,font=\tiny]{$P_{ref}$} node[below,font=\tiny]{$Q_{ref}$} (REF);
+    \draw[sigT] (12.85,3.15) node[right,font=\tiny,align=left,black]{$P^*_{\mathrm{IC},k},Q^*_{\mathrm{IC},k}$\\ (terciario)} -- node[above,font=\tiny,black,pos=.75]{$+$} (S);
+    \draw[sigL] (11.75,0.45) node[below,font=\tiny,black]{$\Delta P_k,\Delta Q_k$ (lazo rápido) \abierto{4}} -- node[right,font=\tiny,black,pos=.85]{$+$} (S);
+    \node[font=\tiny\bfseries,azul] at (6.6,0.42) {PRIMARIO DEL IC (seguidor de corriente)};
+    \node[font=\tiny] at (5.4,2.35) {¿droop AC? \abierto{5}};
+  \end{tikzpicture}}
+
+  \vspace{4pt}
+  \footnotesize\raggedright
+  \textbf{\color{azul}BESS (droop):} $V_{ref,B}=V^*_{dc}+\delta_B-k_dP_B$. \quad
+  \textbf{\color{cS}Secundario:} ajusta $\delta_B$ para restaurar $V_{dc}$ y cuidar el SoC. \quad
+  \textbf{\color{azul}IC:} $P_{ref}=P^*_{\mathrm{IC},k}+\Delta P_k$ y sigue esa corriente.
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Lazo rápido y terciario en detalle}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    % ---- lazo rapido
+    \fill[green!8,rounded corners=10pt] (-0.4,2.55) rectangle (13.3,5.0);
+    \node[anchor=north west,font=\scriptsize\bfseries,cL!80!black] at (-0.3,4.95) {LAZO RÁPIDO (segundos)};
+    \node[cb,text width=1.5cm] (MH) at (0.55,3.6) {Cabecera\\ $i_{abc},\,v_{abc}$};
+    \node[cb,text width=1.55cm] (FO) at (2.55,3.6) {Fortescue\\ $\Rightarrow I_0,\,I_2$};
+    \draw[sig] (MH) -- (FO);
+    \node[sumn] (e) at (4.2,3.6) {$\Sigma$};
+    \draw[sig] (FO) -- node[above,font=\tiny]{$I_0,I_2$} node[below,font=\tiny,pos=.85]{$-$} (e);
+    \draw[sig] (4.2,4.55) node[above,font=\tiny]{ref.\ $0$} -- node[right,font=\tiny,pos=.8]{$+$} (e);
+    \node[cb,draw=cL,line width=1.1pt,text width=1.55cm] (C) at (5.75,3.6) {Controlador\\ (¿PI?) \abierto{4}};
+    \draw[sig] (e) -- node[above,font=\tiny]{error} (C);
+    \node[cb,draw=cL,line width=1.1pt,text width=1.9cm] (A) at (8.05,3.6) {Asignación entre\\ micro-redes \abierto{4}\\ \tiny $Q$ primero};
+    \draw[sig] (C) -- (A);
+    \node[cb,text width=1.75cm] (SAT) at (10.95,3.6) {Límite por\\ margen de SoC$_k$};
+    \draw[sig] (A) -- node[above,font=\tiny]{$\Delta P_k,\Delta Q_k$} (SAT);
+    \draw[sigL] (SAT) -- (12.6,3.6) node[right,font=\tiny,black,align=left]{a los\\ IC$_k$};
+    \draw[sigT] (10.95,2.75) node[below,font=\tiny,black]{rango SoC$_k$} -- (SAT);
+    % ---- terciario
+    \fill[orange!8,rounded corners=10pt] (-0.4,-0.3) rectangle (13.3,2.25);
+    \node[anchor=north west,font=\scriptsize\bfseries,cT!80!black] at (-0.3,2.2) {TERCIARIO (cada 15 min)};
+    \node[nube,minimum width=2.1cm,minimum height=1.0cm] (nu) at (0.8,0.85) {Pronósticos\\ tarifa \abierto{2}};
+    \node[cb,text width=1.5cm] (SO) at (3.2,1.45) {SoC de BESS\\ y EV};
+    \node[cb,text width=1.5cm] (SH) at (3.2,0.25) {Medición\\ $S_{h,\phi}$};
+    \node[cb,draw=cT,line width=1.1pt,text width=2.6cm,minimum height=1.6cm] (OPT) at (6.4,0.85) {\textbf{Optimización}\\ ventana $H$ \abierto{1}\\ mín.\ compra de energía\\ + desbalance entre fases};
+    \draw[sig] (nu) -- (OPT.west); \draw[sig] (SO) -- ([yshift=0.4cm]OPT.west); \draw[sig] (SH) -- ([yshift=-0.4cm]OPT.west);
+    \node[cb,text width=2.0cm] (PL) at (10.0,1.4) {\textbf{Plan}\\ $P^*_{\mathrm{IC},k},\,Q^*_{\mathrm{IC},k}$};
+    \node[cb,text width=2.0cm] (RA) at (10.0,0.3) {\textbf{Rango} \abierto{3}\\ $[\mathrm{SoC}^{\min}_k,\mathrm{SoC}^{\max}_k]$};
+    \draw[sigT] (OPT) -- (PL); \draw[sigT] (OPT) -- (RA);
+    \draw[sigT] (PL) -- (12.4,1.4) node[right,font=\tiny,black]{al IC$_k$};
+    \draw[sigT] (RA) -- (12.4,0.3) node[right,font=\tiny,black,align=left]{secundario $k$\\ y lazo rápido};
+  \end{tikzpicture}}
+
+  \vspace{4pt}
+  \footnotesize\raggedright
+  El \textbf{lazo rápido} cierra el lazo sobre la \textbf{medición}: si $I_0$ o $I_2$ no son cero, corrige. El \textbf{terciario} planifica con \textbf{pronósticos}: entrega cuánto inyectar y cuánta energía puede usar cada micro-red.
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Historia de una perturbación: quién reacciona y cuándo}
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+    \draw[-{Latex[length=3mm]},line width=1.2pt,gray] (0,0) -- (14.2,0) node[right]{tiempo};
+    \foreach \x/\t in {0.9/{$t=0$},3.6/{ms},6.3/{segundos},9.0/{ms a segundos},11.7/{próximo intervalo ($\le 15$ min)}}{\draw[gray] (\x,0.1) -- (\x,-0.1) node[below,font=\tiny]{\t};}
+    \foreach \x/\c/\n/\h/\t in {
+      0.9/usachR/0/{Cliente}/{Un cliente de la fase $a$ enciende 3 kW.\\ Sube $I_0$ e $I_2$ en cabecera.},
+      3.6/cP/1/{Primario}/{Los IC siguen su consigna: aún no saben nada.},
+      6.3/cL/2/{Lazo rápido}/{Mide $I_0\uparrow$ y envía $\Delta P_k$ a las micro-redes de $a$ (y quizá carga en $b$, $c$).},
+      9.0/cS/3/{Primario + secundario}/{El IC toma más potencia: $V_{dc}$ baja, los DER responden por droop y el secundario restaura $V_{dc}$ y reparte por SoC.},
+      11.7/cT/4/{Terciario}/{Ve el SoC más bajo y el nuevo pronóstico, y replanifica plan y rango.}}{
+      \node[circle,fill=\c,text=white,font=\scriptsize\bfseries,minimum size=0.55cm] at (\x,0.75) {\n};
+      \node[draw=\c,line width=1pt,fill=white,rounded corners=3pt,text width=2.25cm,align=left,anchor=south,font=\scriptsize,minimum height=2.9cm] at (\x,1.15) {\textbf{\color{\c}\h}\\[2pt] \t};
+    }
+  \end{tikzpicture}}
+
+  \vspace{6pt}
+  \begin{tikzpicture}\node[card=12.2cm,draw=usachO] {\textbf{\color{usachO}Moraleja:} cada nivel reacciona a lo que \textbf{está en su conjunto de entradas} y a su propio ritmo. El secundario nunca ve la cabecera: se entera de la perturbación solo porque cambia su $V_{dc}$. El rango de SoC impide que el lazo rápido gaste la energía que el terciario reservó para más tarde.};\end{tikzpicture}
+\end{frame}
+
+\end{document}

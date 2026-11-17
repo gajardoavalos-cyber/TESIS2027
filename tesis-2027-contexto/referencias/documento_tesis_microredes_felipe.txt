@@ -1,0 +1,494 @@
+                 Documento de orientación para
+                      propuesta de tesis
+                   Control por fase de una Micro-red híbrida AC/DC conectada a red
+     Topología con red AC trifásica de cuatro hilos, interlinking converters monofásicos y
+                               Micro-redes DC independientes
+
+
+
+   Autor y contexto
+   Felipe Gajardo - Magíster en Ciencias de la Ingeniería. Profesor guía: Enrique Espina. Documento preparado para
+   ordenar el estado del arte, la problemática técnica, la hipótesis preliminar, los nudos actuales y la ruta de avance
+   de la tesis.
+
+
+
+
+  Figura de síntesis: topología por fase con Micro-redes DC independientes. Fuente: diagrama generado para esta propuesta a
+                                                  partir de la topología discutida.
+
+
+                                                    Fecha: julio de 2026
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                         1
+ Índice ejecutivo
+ 1. Resumen ejecutivo y tesis en una frase
+ 2. Tema de tesis y arquitectura considerada
+ 3. Estado del arte: cómo ordenarlo
+ 4. Problemática principal y nudos técnicos
+ 5. Hipótesis, aporte y objetivos preliminares
+ 6. Cómo abordar la tesis por simulación
+ 7. Escenarios, métricas y variables de evaluación
+ 8. Beneficios, limitaciones y comparación con otras topologías
+ 9. Momento actual de avance y próximos pasos
+ 10. Preguntas para discutir con el profesor guía
+ 11. Bibliografía inicial y ruta de lectura
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase             2
+ 1. Resumen ejecutivo y tesis en una frase
+ La propuesta se centra en una Micro-red híbrida AC/DC conectada a una red existente trifásica de cuatro
+ hilos. La diferencia respecto de una arquitectura híbrida convencional es que cada fase de la red AC se
+ acopla mediante un interlinking converter monofásico a una Micro-red DC independiente. Así, la fase a
+ alimenta DC-MR_a, la fase b alimenta DC-MR_b y la fase c alimenta DC-MR_c. Cada Micro-red DC posee
+ generación, cargas, almacenamiento y eventualmente EV/V2G propios.
+
+ El punto de interés no es solamente conectar AC y DC, sino estudiar qué ocurre cuando cada fase tiene
+ una dinámica energética distinta. Si cada convertidor se controla de manera local, puede regular
+ adecuadamente su bus DC, pero al mismo tiempo puede producir un desbalance de potencia/corriente en
+ la red AC existente. Por tanto, el problema de tesis se ubica en el compromiso entre regulación
+ energética local y comportamiento trifásico global.
+
+   Tesis en una frase
+   Coordinar convertidores AC/DC por fase para que tres Micro-redes DC independientes puedan regularse
+   localmente sin producir un desbalance inadmisible en la red trifásica existente.
+
+ El documento sintetiza el estado del arte, la arquitectura, los nudos conceptuales, la hipótesis preliminar
+ y una ruta metodológica realista. El alcance más coherente para esta etapa es de simulación,
+ comenzando con modelos promedio energéticos y avanzando hacia modelos dinámicos de los
+ convertidores.
+
+
+ 2. Tema de tesis y arquitectura considerada
+ La topología considerada mantiene una red AC existente de cuatro hilos, con conductores a, b, c y n. El
+ neutro pertenece al dominio AC y puede ser utilizado como referencia de medición para tensiones
+ fase-neutro y corriente de neutro. Sin embargo, las referencias locales de las Micro-redes DC no se
+ conectan rígidamente al neutro común de la red. Esta distinción evita confundir el neutro AC con una
+ barra DC común.
+
+ La conexión base se puede expresar como:
+
+                      a-n ↔ IC_a ↔ DC-MR_a | b-n ↔ IC_b ↔ DC-MR_b | c-n ↔ IC_c ↔ DC-MR_c
+
+ La condición estructural que debe quedar clara es:
+
+                                                0V_a ≠ n, 0V_b ≠ n, 0V_c ≠ n
+
+ Esto no significa eliminar el neutro de la red. Significa que los recursos distribuidos del lado DC no
+ comparten directamente el neutro común como referencia eléctrica. Cada Micro-red DC posee su propio
+ bus y su propia referencia local. El intercambio energético relevante se realiza a través del IC
+ correspondiente.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                          3
+           Figura 1. Esquema de presentación: red 3φ-4W, PCC, interfaces por fase y Micro-redes DC independientes.
+
+ Esta arquitectura permite estudiar una condición poco cubierta por los modelos híbridos clásicos: el
+ desbalance puede originarse en el lado DC debido a diferencias de carga, generación, disponibilidad de
+ almacenamiento o SOC entre Micro-redes DC conectadas por fase.
+
+
+ 3. Estado del arte: cómo ordenarlo
+ El estado del arte debe construirse como una convergencia de líneas, no como una lista de papers. La
+ primera línea corresponde a Micro-redes híbridas AC/DC e interlinking converters. La literatura de revisión
+ reconoce al ILC como el elemento responsable de la conversión y gestión del flujo de potencia entre
+ subredes AC y DC, siendo crítico para el desempeño de la Micro-red híbrida [R1]. Otros reviews recientes
+ agrupan topologías, control, protección y desafíos de HMGs [R2].
+
+ La segunda línea corresponde al control coordinado de Micro-redes híbridas AC/DC. Los trabajos del
+ profesor Enrique Espina son especialmente relevantes porque proponen controlar la Micro-red híbrida
+ como un sistema coordinado, no como tres partes aisladas: subred AC, subred DC e IC [R3, R4]. Tu
+ propuesta conserva esa idea, pero la lleva a una arquitectura por fase.
+
+ La tercera línea corresponde a redes trifásicas de cuatro hilos, desbalance y control por fase. Los trabajos
+ sobre regulación cooperativa de desbalances en Micro-redes 3φ-4W muestran que los desbalances no son
+ perturbaciones menores: impactan corrientes, tensión fase-neutro, corriente de neutro y componentes de
+ secuencia [R5, R6].
+
+ La cuarta línea corresponde a múltiples ICs y múltiples subredes DC. Existen trabajos que estudian power
+ sharing en Micro-redes híbridas con varias subredes DC o múltiples convertidores de interconexión [R7].
+ Sin embargo, la brecha aparece cuando esas subredes DC se asocian a fases específicas de una red AC
+ de cuatro hilos.
+
+ La quinta línea corresponde a SOC, BESS y EV/V2G. Si cada fase posee almacenamiento o EV/V2G, el
+ problema no es solo instantáneo: también existe una restricción energética acumulada. La literatura
+ sobre BMS en Micro-redes híbridas y control predictivo secundario entrega antecedentes para justificar la
+ incorporación del SOC como variable de coordinación [R8, R9].
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                4
+        Línea del estado                     Qué aporta                            Cómo se conecta con la tesis
+            del arte
+
+      Micro-redes híbridas    Define el rol del convertidor como         Base conceptual del acoplamiento entre red AC y
+      AC/DC e ICs             interfaz bidireccional AC/DC.              Micro-redes DC.
+
+      Control coordinado      Evita mirar AC, DC e IC como               Permite justificar una capa superior de
+      AC/DC                   subsistemas aislados.                      coordinación.
+
+      Redes 3φ-4W y           Muestra importancia de corriente de        Respalda que el lado AC no se debe modelar solo
+      desbalance              neutro, VUF y control por fase.            como balanceado.
+
+      Múltiples subredes      Estudia reparto de potencia y              Da base para tener DC-MR_a, DC-MR_b y
+      DC                      coordinación entre subredes.               DC-MR_c.
+
+      SOC, BESS y V2G         Introduce restricciones energéticas de     Justifica SOC_i como variable de control por fase.
+                              mediano plazo.
+
+
+
+ 4. Problemática principal y nudos técnicos
+ La problemática central puede formularse así: la regulación local de cada Micro-red DC puede generar un
+ desbalance global en la red trifásica existente. Es decir, cada rama puede resolver su propio problema de
+ tensión DC, pero el conjunto puede empeorar la calidad de operación vista por la red.
+
+ En términos de potencia, si cada Micro-red DC tiene diferente generación, carga y SOC, es esperable que
+ las potencias intercambiadas por los convertidores no sean iguales:
+
+                                 P_IC,a ≠ P_IC,b ≠ P_IC,c ⇒ P_a ≠ P_b ≠ P_c ⇒ I_n ≠ 0
+
+ Este es el punto que convierte la topología en una propuesta de tesis: no se trata solo de diseñar tres
+ lazos de control locales, sino de coordinar tres ramas energéticas para que la red existente observe un
+ comportamiento trifásico aceptable.
+
+            Nudo                              Descripción                                Riesgo si no se resuelve
+
+      Nudo conceptual      No confundir PCC con neutro; el PCC es la barra de   Formular mal la topología y las mediciones.
+                           acoplamiento, el neutro es un conductor de la red
+                           AC.
+
+      Nudo topológico      La red es 3φ-4W, pero las Micro-redes DC no          Dibujar una barra de neutro DC inexistente o
+                           comparten una referencia 0V común con el neutro      incorrecta.
+                           n.
+
+      Nudo de control      Regular Vdc_i localmente puede aumentar el           Obtener buses DC estables pero una red AC
+      local/global         desbalance por fase.                                 deteriorada.
+
+      Nudo SOC por         SOC_i representa energía disponible; no basta con    Agotar una batería o EV de una fase para
+      fase                 potencia instantánea.                                compensar otra.
+
+      Nudo                 El alcance debe ser simulación, con modelos          Sobredimensionar la tesis y perder foco.
+      metodológico         promedio antes de modelos conmutados.
+
+      Nudo                 Hay papers por áreas, pero pocos con                 No declarar adecuadamente la brecha de
+      bibliográfico        exactamente esta integración fase-DC-MR.             investigación.
+ La frase que ordena la problemática es: cada fase tiene un problema energético local, pero la red
+ existente exige un comportamiento trifásico global aceptable.
+
+
+ 5. Hipótesis, aporte y objetivos preliminares
+ La hipótesis debe ser verificable por simulación y comparativa. No basta con afirmar que se diseñará un
+ control; debe indicarse qué mejora se espera demostrar frente a un caso base. La hipótesis recomendada
+ es la siguiente:
+
+   Hipótesis preliminar
+   Una estrategia de coordinación por fase, aplicada a los interlinking converters monofásicos de una Micro-red
+   híbrida AC/DC conectada a una red trifásica de cuatro hilos, permite reducir el desbalance de potencia/corriente
+   observado por la red existente respecto de un control local independiente, manteniendo Vdc_i y SOC_i dentro de
+   rangos admisibles.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                          5
+ El aporte no debe presentarse como una nueva topología de convertidor. El aporte real es formular y
+ evaluar una estrategia de coordinación por fase donde IC_a, IC_b e IC_c no solo regulan buses DC, sino
+ que también actúan como actuadores de balance en la red AC.
+
+ Objetivo general preliminar:
+
+   Objetivo general
+   Diseñar y evaluar mediante simulación una estrategia de control por fase para una Micro-red híbrida AC/DC
+   conectada a una red trifásica de cuatro hilos, donde cada fase se acopla mediante un IC monofásico a una
+   Micro-red DC independiente, con el fin de reducir el desbalance observado por la red existente sin comprometer
+   la regulación local de tensión DC y SOC.
+
+                 Objetivo específico                                                 Sentido técnico
+
+      Modelar la arquitectura 3φ-4W + ICs por           Definir el sistema eléctrico y energético que será simulado.
+      fase + DC-MR independientes.
+
+      Caracterizar cómo los desbalances DC se           Mostrar que el problema existe y cuantificarlo.
+      reflejan en la red AC.
+
+      Implementar control local por fase como           Disponer de una comparación objetiva.
+      caso base.
+
+      Diseñar una capa de coordinación de               Introducir el aporte de tesis.
+      referencias P_IC,i*.
+
+      Comparar métricas locales y globales.             Demostrar si la hipótesis se cumple.
+
+
+
+ 6. Cómo abordar la tesis por simulación
+ El alcance más razonable para el momento actual es de simulación. Se recomienda evitar comprometer
+ prototipo experimental en esta etapa, porque el problema ya es suficientemente rico en modelamiento,
+ control, coordinación y evaluación. La simulación puede organizarse en tres niveles.
+
+ El primer nivel es un modelo energético promedio. En este modelo cada IC se representa como una
+ fuente controlada de potencia con límites. El objetivo no es capturar la conmutación, sino entender cómo
+ P_IC,i afecta Vdc_i, SOC_i y el desbalance por fase.
+
+ El segundo nivel incorpora dinámica promedio de convertidores. Aquí aparecen lazos de corriente, filtros
+ AC, enlace DC, referencia de potencia y limitaciones dinámicas. Este nivel permite verificar estabilidad y
+ tiempos de respuesta con mayor realismo.
+
+ El tercer nivel puede ser una simulación más detallada en MATLAB/Simulink, PLECS o una combinación de
+ modelos promedio y conmutados. Este nivel queda condicionado al tiempo disponible y a lo que apruebe
+ el profesor guía.
+
+              Etapa                                Modelo                                          Resultado esperado
+
+      1. Modelo energético    Balances de potencia por fase, fuentes                     Demostrar el conflicto local/global.
+                              controladas P_IC,i y evolución de SOC_i.
+
+      2. Control local        Cada IC regula su propia DC-MR mediante Vdc_i.             Obtener caso base y evidenciar
+                                                                                         desbalance.
+
+      3. Coordinación         Corrección de P_IC,i* usando SOC_i, P_i e I_n.             Reducir desbalance sin violar restricciones
+      superior                                                                           locales.
+
+      4. Comparación          Escenarios de carga, PV, BESS y EV/V2G.                    Validar la hipótesis con métricas.
+ Una formulación compacta de desempeño puede escribirse como:
+
+                J = w1 Σ(Vdc_i - Vdc*)² + w2 Σ(SOC_i - SOC_ref)² + w3 Σ(P_i - P_prom)² + w4 I_n²
+
+ Esta función no tiene que ser definitiva desde el primer día. Su valor inicial es ordenar el problema como
+ multiobjetivo: tensión DC, estado energético por fase y balance visto por la red.
+
+
+ 7. Escenarios, métricas y variables de evaluación
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                                  6
+ La tesis debe demostrar el aporte comparando control local versus control coordinado bajo escenarios
+ donde el problema realmente aparezca. Usar tres Micro-redes DC iguales no sirve, porque ocultaría la
+ brecha. Se deben forzar condiciones distintas por fase.
+
+            Escenario                         Condición                                Qué permite observar
+
+      Base balanceada           Tres Micro-redes DC equivalentes.         Referencia nominal y validación del modelo.
+
+      Rama A demandante         Alta carga y bajo SOC en DC-MR_a.         Aumento de P_IC,a y riesgo de desbalance.
+
+      Rama C                    PV alto o EV/V2G disponible en            Capacidad de apoyo energético.
+      excedentaria              DC-MR_c.
+
+      SOC desigual              SOC_a < SOC_b < SOC_c.                    Reparto energético sostenible.
+
+      Saturación de IC          Una interfaz alcanza P_IC,max.            Pérdida de desempeño y prioridades de control.
+
+      Carga flexible            Parte de P_load,i puede modularse.        Grados de libertad adicionales de gestión
+                                                                          energética.
+ Las variables locales por Micro-red DC deberían incluir Vdc_i, SOC_i, P_load_i, P_DG_i, P_BESS_i, P_EV_i y
+ P_IC_i. Las variables globales de red deberían incluir P_a, P_b, P_c, I_a, I_b, I_c, I_n, VUF, CUF y, si el
+ modelo lo permite, THD.
+
+                    Métrica                                                   Interpretación
+
+      Error de Vdc_i                        Calidad de regulación local de cada bus DC.
+
+      Desviación de SOC_i                   Uso energético desigual de almacenamiento o EV/V2G.
+
+      Dispersión de P_a, P_b, P_c           Desbalance de potencia observado por la red.
+
+      Corriente de neutro I_n               Indicador directo de operación desbalanceada en 3φ-4W.
+
+      VUF/CUF                               Indicadores formales de desbalance de tensión y corriente.
+
+      Saturación de P_IC,i                  Límite físico de cada interfaz.
+
+      Tiempo de recuperación                Respuesta dinámica ante perturbaciones.
+
+
+
+ 8. Beneficios, limitaciones y comparación con otras
+ topologías
+ El beneficio central de esta topología es que permite observar y controlar el comportamiento energético
+ por fase. Cada fase deja de ser solamente un conductor AC y pasa a ser un puerto energético asociado a
+ una Micro-red DC. Esto es relevante cuando los recursos no están distribuidos simétricamente entre
+ fases.
+
+                 Topología                              Ventaja                       Limitación frente a la propuesta
+
+      Un IC trifásico hacia bus DC       Simplicidad y menor cantidad de          Menor visibilidad/acción por fase.
+      común                              convertidores.
+
+      Tres ICs hacia un bus DC           Permite acción por fase en AC.           El lado DC queda acoplado y no representa
+      común                                                                       DC-MR independientes.
+
+      Convertidor de cuatro brazos       Fuerte capacidad para compensar          Mayor complejidad de electrónica de
+                                         desbalance y neutro.                     potencia y control.
+
+      Tres ICs monofásicos hacia tres    Máxima modularidad y análisis            Requiere coordinación superior y más
+      DC-MR independientes               energético por fase.                     convertidores.
+ La arquitectura no debe presentarse como universal. Es adecuada cuando el problema de investigación
+ se relaciona con desbalances originados por recursos DC distribuidos por fase. No es necesariamente la
+ opción más económica o simple para una aplicación comercial pequeña con cargas homogéneas.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                         7
+  Figura 2. Esquema técnico representativo de la conexión eléctrica. Fuente: diagrama generado para clarificar la topología de
+                                                            tesis.
+
+
+ 9. Momento actual de avance y próximos pasos
+ El momento actual puede describirse como una transición desde la intuición temática hacia la
+ formulación científica del problema. Ya existe una topología atractiva sugerida por el profesor guía: red
+ AC 3φ-4W, ICs monofásicos por fase y Micro-redes DC independientes. También existe una motivación
+ clara: estudiar cómo el desbalance del lado DC se proyecta hacia la red AC.
+
+ El punto que aún debe madurar es convertir esa intuición en un problema formal, acotado y medible. Para
+ esto conviene presentar al profesor una estructura de avance basada en tres decisiones: qué topología
+ exacta se estudiará, qué variables se controlarán y qué comparación demostrará el aporte.
+
+           Momento                          Estado actual                                 Acción recomendada
+
+      Comprensión de la      La arquitectura general ya está definida.      Confirmar con el profesor si el dibujo y las
+      topología                                                             condiciones de neutro son correctas.
+
+      Estado del arte        Ya están identificadas las líneas              Leer primero los 8 documentos núcleo y armar
+                             principales.                                   matriz de brecha.
+
+      Problema de            El conflicto local/global está identificado.   Redactar problemática en una página.
+      investigación
+
+      Hipótesis              Existe una formulación preliminar.             Hacerla verificable con métricas.
+
+      Metodología            El alcance más realista es simulación.         Definir plataforma: MATLAB/Simulink, PLECS o
+                                                                            modelo híbrido.
+
+      Modelo                 Pendiente de formalizar.                       Partir por balances promedio por fase.
+
+      Control                Pendiente de diseñar.                          Implementar primero control local, luego
+                                                                            coordinación.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                            8
+   Diagnóstico de avance
+   No falta “entender todo” antes de seguir. Falta ordenar el tema en una hipótesis verificable y una ruta de
+   simulación. El siguiente paso no es leer indefinidamente, sino cerrar la topología y diseñar el primer modelo
+   promedio.
+
+
+
+ 10. Preguntas para discutir con el profesor guía
+ En la próxima reunión, la conversación debe buscar delimitación. Es conveniente llegar con preguntas
+ técnicas cerradas, porque eso permite transformar una idea amplia en una tesis ejecutable.
+
+                           Pregunta                                                 Por qué importa
+
+      ¿La topología correcta es red 3φ-4W con tres ICs      Confirma la arquitectura base.
+      monofásicos y tres DC-MR independientes?
+
+      ¿El neutro debe estar solo en el dominio AC y no      Evita un error topológico central.
+      compartirse como referencia DC?
+
+      ¿El aporte debe centrarse en coordinación por         Delimita la contribución.
+      fase y no en una nueva topología de convertidor?
+
+      ¿Tiene sentido partir con modelo promedio             Hace abordable la tesis.
+      energético por simulación?
+
+      ¿Qué variables son prioritarias: Vdc_i, SOC_i, P_i,   Define mediciones y métricas.
+      I_n y VUF?
+
+      ¿Conviene partir con control centralizado simple o    Define complejidad de control.
+      control distribuido?
+
+      ¿EV/V2G será parte del núcleo o una extensión?        Evita sobredimensionar el alcance.
+ Explicación oral sugerida: “Profesor, estoy entendiendo que el problema no es solo regular buses DC, sino
+ coordinar las potencias por fase para que la red existente no vea un desbalance excesivo. Mi hipótesis es
+ que una coordinación basada en Vdc_i, SOC_i y variables de red puede mejorar el desempeño frente a un
+ control local independiente. Quiero validar esto primero por simulación”.
+
+
+ 11. Bibliografía inicial y ruta de lectura
+ La literatura recomendada se ordena por prioridad de lectura. Los primeros documentos conectan
+ directamente con control por fase, cuatro hilos y la línea del profesor guía; luego se incorporan reviews
+ generales, múltiples subredes DC, SOC/BMS y control avanzado.
+
+        ID                                    Referencia                                                    Link
+
+      R1      Oliveira et al. “Interlinking Converters for Hybrid AC/DC Microgrids: A        https://doaj.org/article/e191bce5
+              Systematic Literature Review”, IEEE Access, 2025.                              c46b400d8a9cd1b958c4d68b
+
+      R2      Khan et al. “Hybrid AC/DC Microgrid: Systematic Evaluation of Interlinking     https://doaj.org/article/360534e3
+              Converters, Control Strategies, and Protection Schemes: A Review”, IEEE        8d764a31b372b834ff5e1a15
+              Access, 2024.
+
+      R3      Espina-González et al. “A Consensus-Based Secondary Control Strategy           https://sic.vriic.usach.cl/entities/p
+              for Hybrid AC/DC Microgrids With Experimental Validation”, IEEE TPEL,          ublication/acd4a317-79dd-4529-b
+              2021.                                                                          a12-f502dda5eeaa
+
+      R4      E. A. Espina González. “Distributed Secondary Control of Hybrid AC/DC          https://repositorio.uchile.cl/handl
+              Microgrids”, PhD Thesis, Universidad de Chile, 2021.                           e/2250/182292
+
+      R5      Espina-González et al. “Cooperative Regulation of Imbalances in                https://repositorio.uchile.cl/handl
+              Three-Phase Four-Wire Microgrids Using Single-Phase Droop Control and          e/2250/177613
+              Secondary Control Algorithms”, IEEE TPEL.
+
+      R6      Espina-González et al. “Active Power Angle Droop Control per Phase for         https://www.kerwa.ucr.ac.cr/item
+              Unbalanced 4-Wire Microgrids”, IEEE SPEC, 2017.                                s/e6fa58c9-bd88-4bda-bf30-9c46
+                                                                                             dc06cc04
+
+      R7      Eisapour-Moarref et al. “Power sharing in hybrid microgrids with multiple      https://www.sciencedirect.com/sc
+              DC subgrids”, IJEPES, 2021.                                                    ience/article/abs/pii/S014206152
+                                                                                             0342617
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                                9
+        ID                                    Referencia                                               Link
+
+      R8      “Power management with BMS to modified interlinking converter topology     https://www.sciencedirect.com/sc
+              in hybrid AC/DC microgrid”, Energy Reports, 2023.                          ience/article/pii/S2352484722026
+                                                                                         804
+
+      R9      Rute-Luengo et al. “Distributed Model-Based Predictive Secondary Control   https://researchers.unab.cl/en/pu
+              for Hybrid AC/DC Microgrids”, IEEE JESTPE, 2022.                           blications/distributed-model-base
+                                                                                         d-predictive-secondary-control-fo
+                                                                                         r-hybrid-a/
+
+      R10     Akdogan and Ahmed. “Improving Power Quality and Power Sharing in           https://arxiv.org/abs/2104.04202
+              Unbalanced Multi-Microgrids Using Energy Storage System”, 2021.
+ Ruta de lectura recomendada: partir por R5 y R6 para entender desbalance 3φ-4W y control por fase;
+ luego leer R3 y R4 para alinearse con la línea de control híbrido AC/DC del profesor guía; después revisar
+ R1 y R2 como marco general de ICs; finalmente usar R7, R8, R9 y R10 para ampliar la discusión sobre
+ múltiples subredes DC, SOC/BMS y control avanzado.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                        10
+ Cierre operativo
+   Mensaje final
+   La propuesta tiene sentido si se formula como un problema de coordinación energética por fase. La tesis no
+   necesita resolver todos los aspectos de protección, prototipo o control grid-forming. El núcleo defendible es
+   demostrar, por simulación, que una coordinación superior de IC_a, IC_b e IC_c puede reducir desbalance en la red
+   existente sin violar límites de Vdc_i, SOC_i y potencia de cada convertidor.
+
+ La frase para defender ante el profesor Enrique es: “Mi tesis busca coordinar convertidores AC/DC por
+ fase para que tres Micro-redes DC independientes puedan regularse localmente sin producir un
+ desbalance inadmisible en la red trifásica existente”.
+
+
+
+
+Propuesta de tesis - Micro-red híbrida AC/DC por fase                                                                 11
+
