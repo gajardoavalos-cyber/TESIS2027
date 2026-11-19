@@ -1,24 +1,25 @@
 % =====================================================================
 %  Reunión de tesis con Prof. Enrique Espina — lunes 23-11-2026, 17:00
 %  Felipe Gajardo Ávalos · Magíster en Ciencias de la Ingeniería, USACH
-%  Tema: álgebra del margen de error del terciario y coherencia con el
-%        lazo rápido (acuerdo 3 del acta del 16-11)
-%   L1  Niveles (actualizado: P*_k, alpha_k, b_phi, R^eps_phi)
-%   L2  El lazo rápido es una política afín de reserva
-%   L3  Modelo del error: de dónde salen sigma_phi, z y m
-%   L4  Reparto en la fase: factores de participación alpha_k
-%   L5  Energía en toda la trayectoria (el margen crece con el horizonte)
+%  Tema: margen de error del terciario y lazo rápido (acuerdo 3, acta 16-11)
+%  v2 (19-11): rehecha tras revisar el PDF compilado (sumatorias grandes,
+%  recuadros desbordados, diagrama del lazo confuso, exceso de texto).
+%   L1  Niveles de control (actualizado)
+%   L2  Dos tipos de desbalance: energía y margen
+%   L3  El lazo rápido: plan + reacción proporcional (política afín, alpha_k)
+%   L4  Cuánto margen guardar: el modelo del error
+%   L5  El margen de energía crece con el horizonte
 %   L6  Terciario: el LP completo
 %   L7  Lazo rápido coherente con el terciario
-%  Compilar con XeLaTeX (recomendado) o pdfLaTeX, dos pasadas
-%  Requiere fig/fondo_usach_contenido.png (incluido junto a este archivo)
+%   L8  Decisiones que necesito validar
+%  Compilar con XeLaTeX (recomendado) o pdfLaTeX, dos pasadas.
+%  Requiere fig/fondo_usach_contenido.png
 % =====================================================================
 \PassOptionsToPackage{table}{xcolor}
 \documentclass[aspectratio=169,10pt,t]{beamer}
 
 \usefonttheme{professionalfonts}
-% Compila con XeLaTeX/LuaLaTeX (fontspec + polyglossia) o con pdfLaTeX
-% (inputenc + babel). En Overleaf: Menu -> Compiler -> XeLaTeX o pdfLaTeX.
+% XeLaTeX/LuaLaTeX: fontspec + polyglossia. pdfLaTeX: inputenc + babel.
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[utf8]{inputenc}
@@ -31,10 +32,13 @@
   \setmainlanguage{spanish}
 \fi
 \usepackage{amsmath,amssymb,bm}
+\usepackage{exscale}   % sumatorias del tamaño de la letra (sin esto salen gigantes)
 \usepackage{graphicx}
+\usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.misc,decorations.pathreplacing}
 \graphicspath{{fig/}}
+\hyphenpenalty=10000\exhyphenpenalty=10000   % sin guiones de corte en los recuadros
 
 % ------------------------------- Colores USACH -----------------------
 \definecolor{usachT}{HTML}{009688}
@@ -72,27 +76,27 @@
   dest/.style={fill=#1,text=white,rounded corners=5pt,align=center,text width=1.7cm,minimum height=0.42cm,inner sep=2pt,font=\footnotesize\bfseries},
   fo/.style={-{Latex[length=2.2mm]},line width=1.2pt,#1},
   jd/.style={circle,fill=#1,inner sep=0pt,minimum size=3.2pt},
-  kc/.style={draw=#1,line width=.8pt,rounded corners=2pt,fill=white,align=left,inner sep=3pt,font=\fontsize{6.2}{7.4}\selectfont},
+  kc/.style={draw=#1,line width=.8pt,rounded corners=2pt,fill=white,align=left,inner sep=4pt,font=\fontsize{7}{8.6}\selectfont},
   blq/.style={draw=#1,line width=1.1pt,fill=white,rounded corners=2pt,align=center,font=\small,inner sep=3pt,minimum height=0.95cm},
-  sm/.style={circle,draw=#1,line width=1.1pt,fill=white,inner sep=0pt,minimum size=0.5cm,font=\small\bfseries},
+  sm/.style={circle,draw=#1,line width=1.1pt,fill=white,inner sep=0pt,minimum size=0.55cm,font=\small\bfseries},
   ar/.style={-{Latex[length=2.3mm]},line width=1.2pt,#1},
 }
-\newcommand{\kt}[2]{{\fontsize{6.8}{8}\selectfont\bfseries\color{#1}#2}}
+\newcommand{\kt}[2]{{\fontsize{7.6}{9}\selectfont\bfseries\color{#1}#2}}
 
 \begin{document}
 
 % =====================================================================
-%  L1 — NIVELES (actualizado)
+%  L1 — NIVELES
 % =====================================================================
 \begin{frame}{Niveles de control: qué mide, decide e informa}
   \vspace{-0.28cm}
   \centering
-  \resizebox{!}{6.25cm}{%
+  \resizebox{!}{6.1cm}{%
   \begin{tikzpicture}[x=1cm,y=1cm]
     \node[hdr] at (1.3,9.55) {NIVEL};
     \node[hdr] at (5.2,9.55) {1.\; MIDE O RECIBE};
     \node[hdr] at (9.55,9.55) {2.\; DECIDE};
-    \node[hdr] at (13.25,9.55) {3.\; INFORMA (variable)};
+    \node[hdr] at (13.25,9.55) {3.\; INFORMA};
     \node[hdr] at (16.35,9.55) {4.\; A QUIÉN};
     \foreach \y in {7.2,5.0,2.8}{\draw[gray!30,line width=.5pt] (0,\y) -- (17.3,\y);}
 
@@ -101,13 +105,13 @@
     \node[ent] (eT) at (5.2,8.2) {%
       $\mathcal E_k,\ E_k$: envolvente y energía de cada MR\\
       $\hat D_\phi$: desbalance previsto por fase\\
-      $\sigma_\phi$, $a_\phi$: estadística de su error\\
+      $\sigma_\phi,\ a_\phi$: estadística de su error\\
       $c(t)$: tarifa\\[2pt]
       \textcolor{cS}{de: secundarios (vía su IC) e historia}};
     \node[dec=cT] (T) at (9.55,8.2) {\textbf{Solo energía}\\[1pt]
-      mín.\ costo de compra\\ $H=12$ h, LP\\ aparta energía y margen};
+      mín.\ costo de compra\\ LP con $H=12$ h\\ aparta energía\\ y margen};
     \node[out=cT] (oT1) at (13.25,8.67) {$P^*_k,\ \alpha_k$\\ {\scriptsize plan y participación}};
-    \node[out=cT] (oT2) at (13.25,7.73) {$b_\phi,\ \rho_\phi,\ R^{\varepsilon}_\phi$\\ {\scriptsize previsto, residual y margen}};
+    \node[out=cT] (oT2) at (13.25,7.73) {$b_\phi,\ \rho_\phi,\ R^{\varepsilon}_\phi$\\ {\scriptsize banda de la fase}};
     \node[dest=cP] (dT1) at (16.35,8.67) {IC$_k$};
     \node[dest=cL] (dT3) at (16.35,7.73) {Lazo rápido};
     \node[font=\scriptsize,text=grisM] at (16.35,7.3) {(uno por fase)};
@@ -116,7 +120,7 @@
     \node[tag=cL] (gL) at (1.3,6.1) {\textbf{LAZO RÁPIDO}\\[1pt] uno por fase\\ cada $\sim$1 s\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cL}{controlador}}};
     \node[ent] (eL) at (5.2,6.1) {%
       $P_{h,a},\ P_{h,b},\ P_{h,c}$: potencia por fase\\
-      $b_\phi,\ R^{\varepsilon}_\phi$: banda de la fase\\[2pt]
+      $b_\phi,\ \rho_\phi,\ R^{\varepsilon}_\phi$: banda de la fase\\[2pt]
       \textcolor{cT}{de: cabecera y terciario}};
     \node[dec=cL] (L) at (9.55,6.1) {\textbf{Solo balance}\\[1pt]
       iguala las 3 fases\\ $e_\phi=P_{h,\phi}-\bar P_h$\\ PI en $b_\phi\pm R^{\varepsilon}_\phi$};
@@ -140,14 +144,14 @@
     \node[font=\scriptsize,text=grisM] at (16.35,3.0) {(vía su IC)};
 
     % PRIMARIO
-    \node[tag=cP] (gP) at (1.3,1.7) {\textbf{PRIMARIO}\\[1pt] uno por convertidor\\ milisegundos\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cP}{controlador}}};
+    \node[tag=cP] (gP) at (1.3,1.7) {\textbf{PRIMARIO}\\[1pt] uno por\\ convertidor\\ milisegundos\\[3pt] \colorbox{white}{\scriptsize\bfseries\textcolor{cP}{controlador}}};
     \node[ent] (eP) at (5.2,1.7) {%
       DER: $V_{dc,k}$ y su referencia\\
       IC$_k$: $P_{\mathrm{ref},k}=P^*_k+\alpha_k\,\Delta P_\phi$\\[2pt]
-      \textcolor{cP}{de: secundario, terciario y lazo rápido}};
+      \textcolor{cP}{de: secundario, terciario y lazo}};
     \node[dec=cP] (P) at (9.55,1.7) {\textbf{DER}: droop $V_{dc}$--$P$\\[3pt]
       \textbf{IC$_k$}: grid-following\\ sigue $P_{\mathrm{ref},k}$\\ ($Q_{\mathrm{ref},k}=0$)};
-    \node[out=cP] (oP1) at (13.25,2.17) {DER: $i_d$\\ {\scriptsize corriente hacia la barra DC}};
+    \node[out=cP] (oP1) at (13.25,2.17) {DER: $i_d$\\ {\scriptsize corriente a la barra DC}};
     \node[out=cP] (oP2) at (13.25,1.23) {IC$_k$: $p_k$\\ {\scriptsize potencia inyectada}};
     \node[dest=grisM] (dP1) at (16.35,2.17) {Barra DC};
     \node[dest=grisM] (dP2) at (16.35,1.23) {Fase $\phi$};
@@ -172,207 +176,189 @@
 \end{frame}
 
 % =====================================================================
-%  L2 — POLÍTICA AFÍN DE RESERVA
+%  L2 — DOS TIPOS DE DESBALANCE
 % =====================================================================
-\begin{frame}{El lazo rápido es una política afín de reserva}
+\begin{frame}{Dos tipos de desbalance: energía y margen}
   \vspace{-0.30cm}
   \begin{columns}[T,onlytextwidth]
-    \column{.47\textwidth}
-    \begin{tikzpicture}\node[kc=cS,text width=5.75cm]{%
-      \kt{usachTd}{Política afín de reserva [Warrington et al., 2013]}\\[3pt]
-      \hspace*{6pt}$\displaystyle u_i(t)=\underbrace{e_i(t)}_{\text{nominal}}+\sum_{s\le t}D_i(t,s)\,\delta(s)$\\[3pt]
-      $\bullet$ $e_i$: programa que se fija antes (el plan).\\
-      $\bullet$ $D_i$: respuesta planificada al error $\delta$ que se va revelando; triangular inferior (causal).\\
-      $\bullet$ $D_i$ \textbf{solo diagonal} $=$ reserva secundaria clásica: el \textbf{factor de participación} del controlador.\\[2pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=cL,text width=5.75cm]{%
-      \kt{verdeL}{El lazo de cada fase es ese caso diagonal}\\[3pt]
-      \hspace*{6pt}$P_{\mathrm{IC},k}(t)=P^*_k(t)+\alpha_k\,\Delta P_\phi(t),\qquad \Delta P_\phi\approx e_\phi$\\[3pt]
-      $\bullet$ nominal $e_i$ \;$\leftrightarrow$\; $P^*_k$ (lo fija el terciario)\\
-      $\bullet$ diagonal $D_i$ \;$\leftrightarrow$\; $\alpha_k\ge0$, $\sum_{k\in\mathcal N_\phi}\alpha_k=1$\\
-      $\bullet$ error $\delta$ \;$\leftrightarrow$\; $e_\phi=P_{h,\phi}-\bar P_h$, medido en la cabecera\\[2pt]
-      };\end{tikzpicture}
-
-    \column{.51\textwidth}
+    \column{.52\textwidth}
     \centering
-    \begin{tikzpicture}[x=1cm,y=1cm,font=\fontsize{6.4}{7.6}\selectfont]
-      \node[blq=gray!60!black,text width=3.6cm,font=\footnotesize] (E) at (3.1,4.15) {lo que verá el lazo en la fase $\phi$\\[1pt] $e_\phi(t)=\hat e_\phi(t)+\xi_\phi(t)$};
-      \node[blq=cT,text width=2.75cm,align=left,font=\fontsize{6.4}{7.6}\selectfont] (A) at (1.45,2.05) {%
-        \textbf{$\hat e_\phi$: previsible}\\ perfil conocido, dura horas\\[2pt]
-        $\Rightarrow$ \textbf{energía comprometida}\\ $\hat y_k=\alpha_k\,b_\phi$,\ \ $b_\phi=\hat e_\phi-\rho_\phi$};
-      \node[blq=cP,text width=2.75cm,align=left,font=\fontsize{6.4}{7.6}\selectfont] (B) at (4.75,2.05) {%
-        \textbf{$\xi_\phi$: error}\\ del pronóstico, media cero\\[2pt]
-        $\Rightarrow$ \textbf{margen de potencia}\\ $r_k=\alpha_k\,R^{\varepsilon}_\phi$};
-      \draw[ar=cT] (E.south) ++(-0.6,0) -- (A.north);
-      \draw[ar=cP] (E.south) ++(0.6,0) -- (B.north);
-      \node[kc=usachR,text width=5.95cm] at (3.1,-0.05) {%
-        \kt{usachR}{Para dejar la formulación acabada hay que definir}\\[2pt]
-        \textbf{1.} el modelo del error: de dónde salen $\sigma_\phi$, $z$ y $m$;\\
-        \textbf{2.} el reparto $\alpha_k$ entre las MR de la fase;\\
-        \textbf{3.} la energía del margen en \textbf{toda} la trayectoria;\\
-        \textbf{4.} el LP completo y la banda del PI, coherentes entre sí.};
-    \end{tikzpicture}
+    \begin{tikzpicture}[x=0.86cm,y=0.82cm,font=\fontsize{6.6}{7.8}\selectfont]
+      \node[font=\fontsize{7.4}{9}\selectfont\bfseries,anchor=west] at (-0.3,4.15) {Fase $a$: cuánto se aparta del promedio [kW]};
+      \fill[cP!10] (1,1.5) rectangle (5,2.87);
+      \fill[cT!20] (1,0) rectangle (5,1.5);
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (6.4,0);
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (0,3.6);
+      \foreach \x/\l in {0/17,1/18,2/19,3/20,4/21,5/22,6/23}{\draw[gray!60] (\x,0) -- (\x,-0.08) node[below]{\l};}
+      \node at (3,-0.62) {hora};
+      \foreach \v in {1,2,3}{\draw[gray!60] (0,\v) -- (-0.08,\v) node[left]{\v};}
+      \draw[cT,line width=1.4pt] (0,0.02) -- (1,0.02) -- (1,1.5) -- (5,1.5) -- (5,0.02) -- (6,0.02);
+      \draw[cP,line width=.8pt,densely dashed] (1,2.87) -- (5,2.87);
+      \node[cT!80!black,align=center,font=\fontsize{6.6}{7.8}\selectfont\bfseries] at (3,0.72) {previsible\\ $1{,}5$ kW $\times$ 4 h $=6$ kWh};
+      \node[cP,anchor=south,font=\fontsize{6.6}{7.8}\selectfont\bfseries] at (3,2.9) {margen para el error: $+1{,}37$ kW};
+      \draw[usachR,line width=1pt] plot[smooth] coordinates {(0,0.18) (0.5,0.08) (0.92,0.25) (1.15,1.45) (1.5,1.85) (2,2.05) (2.5,1.85) (3,2.12) (3.5,1.92) (4,2.15) (4.5,1.82) (4.9,1.92) (5.12,0.45) (5.5,0.18) (6,0.28)};
+      \node[usachR,anchor=west,align=left,font=\fontsize{6.6}{7.8}\selectfont\bfseries] at (5.15,1.25) {lo que\\ ocurre};
+    \end{tikzpicture}\\[4pt]
+    \raggedright
+    \begin{tikzpicture}\node[kc=usachR,text width=6.0cm]{%
+      \kt{usachR}{Formulación anterior}\\[2pt]
+      Todo el desbalance se cubría con margen de potencia de 15 min. El lazo rápido gastaba los 6 kWh previsibles sin que nadie los hubiera apartado: la BESS se agotaba a las 20:40.};\end{tikzpicture}
+
+    \column{.46\textwidth}
+    \begin{tikzpicture}\node[kc=cT,text width=5.55cm]{%
+      \kt{cT!85!black}{Lo previsible: $\hat e_\phi$}\\[2pt]
+      Clientes monofásicos de siempre, todas las tardes. Dura horas.\\[2pt]
+      $\Rightarrow$ se aparta como \textbf{energía comprometida} en la trayectoria de SoC de cada MR.};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=cP,text width=5.55cm]{%
+      \kt{cP}{El error del pronóstico: $\xi_\phi$}\\[2pt]
+      Lo que no se sabe de antemano. Media cero, pero suele persistir varias horas.\\[2pt]
+      $\Rightarrow$ se aparta como \textbf{margen}: de potencia ($r_k$) y de energía ($Z_\phi$).};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=cL,text width=5.55cm]{%
+      \kt{verdeL}{Los roles no cambian}\\[2pt]
+      El lazo rápido es el único que balancea. El terciario solo aparta lo que el lazo va a gastar; su objetivo sigue siendo solo energía.};\end{tikzpicture}
   \end{columns}
 \end{frame}
 
 % =====================================================================
-%  L3 — MODELO DEL ERROR
+%  L3 — POLÍTICA AFÍN Y FACTORES DE PARTICIPACIÓN
 % =====================================================================
-\begin{frame}{Modelo del error: de dónde salen $\sigma_\phi$, $z$ y $m$}
-  \vspace{-0.32cm}
+\begin{frame}{El lazo rápido: plan más reacción proporcional}
+  \vspace{-0.30cm}
   \begin{columns}[T,onlytextwidth]
     \column{.47\textwidth}
-    \begin{tikzpicture}\node[kc=cS,text width=5.75cm]{%
-      \kt{usachTd}{1. Pronóstico simple y su error}\\[2pt]
-      Demanda no gestionada de la fase, respecto del promedio:\\[1pt]
-      \hspace*{6pt}$D_\phi=\big(P_{h,\phi}+\textstyle\sum_{k\in\mathcal N_\phi}P_{\mathrm{IC},k}\big)-\tfrac13\sum_\psi(\cdot)_\psi$\\[2pt]
-      Pronóstico: mismo tramo de 15 min de los últimos $n$ días\\[1pt]
-      \hspace*{6pt}$\hat D_\phi(t)=\tfrac1n\sum_{d=1}^{n}D_\phi(t-96d)$\\[2pt]
-      Error: $\xi_\phi=D_\phi-\hat D_\phi$\ \ [kW], con $\sigma_\phi(h)$ \textbf{por hora del día} y autocorrelación $a_\phi$ entre tramos. Como $\sum_\phi\xi_\phi=0$, basta estimar dos fases.\\[2pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=grisM,text width=5.75cm]{%
-      \kt{grisM}{3. Qué cubre $m$}\\[2pt]
-      Lo que el promedio de 15 min no ve: variación dentro del tramo, error de medida y de seguimiento del PI:\\[1pt]
-      \hspace*{6pt}$m=q_{1-\varepsilon}\big(\,|P^{1\,\mathrm{min}}_{h,\phi}-\bar P^{15\,\mathrm{min}}_{h,\phi}|\,\big)$\\[2pt]
-      };\end{tikzpicture}
+    \begin{tikzpicture}\node[kc=cS,text width=5.65cm]{%
+      \kt{usachTd}{Lo que hace cada IC de la fase $\phi$}\\[4pt]
+      \hspace*{4pt}$P_{\mathrm{IC},k}(t)=\underbrace{P^*_k(t)}_{\text{plan}}+\underbrace{\alpha_k}_{\text{su parte}}\,\underbrace{\Delta P_\phi(t)}_{\text{corrección de la fase}}$\\[4pt]
+      $\alpha_k\ge0$, $\ \sum_{k\in\mathcal N_\phi}\alpha_k=1$: \textbf{factores de participación}.\\[2pt]
+      Plan fijo más reacción lineal al error medido: es una \textbf{política afín de reserva} con respuesta diagonal, la estructura de la reserva secundaria clásica [Warrington et al., 2013].};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=cT,text width=5.65cm]{%
+      \kt{cT!85!black}{Consecuencia: el terciario sabe qué va a gastar cada MR}\\[3pt]
+      \hspace*{4pt}$\hat y_k=\alpha_k\,b_\phi$\quad energía comprometida [kW]\\[2pt]
+      \hspace*{4pt}$r_k=\alpha_k\,R^{\varepsilon}_\phi$\quad margen para el error [kW]\\[3pt]
+      Criterio propuesto: $\alpha_k=E_k/\sum_j E_j$ $\Rightarrow$ todas las MR de la fase bajan \textbf{el mismo $\Delta$SoC}.};\end{tikzpicture}
 
     \column{.51\textwidth}
-    \begin{tikzpicture}\node[kc=cT,text width=6.3cm]{%
-      \kt{cT!85!black}{2. Margen de la fase: restricción probabilística}\\[2pt]
-      \hspace*{6pt}$\Pr\big[\xi_\phi\le R^{\varepsilon\uparrow}_\phi\big]\ge1-\varepsilon,\qquad \Pr\big[\xi_\phi\ge -R^{\varepsilon\downarrow}_\phi\big]\ge1-\varepsilon$\\[2pt]
-      \hspace*{6pt}$\Rightarrow\ R^{\varepsilon\uparrow}_\phi=q_{1-\varepsilon}(\xi_\phi)+m,\qquad R^{\varepsilon\downarrow}_\phi=-q_{\varepsilon}(\xi_\phi)+m$\\[1pt]
-      };\end{tikzpicture}\\[2pt]
+    \begin{tikzpicture}\node[kc=grisM,text width=6.15cm]{%
+      \kt{grisM}{Por qué el reparto planificado debe ser el del lazo}\\[2pt]
+      Fase $a$, evento previsto de $1{,}5$ kW durante 4 h.\\[3pt]
+      \begin{tabular}{@{}l@{\hspace{6pt}}c@{\hspace{6pt}}c@{\hspace{6pt}}c@{}}
+        & MR$_1$ & MR$_2$ & MR$_3$\\\hline
+        $E_k$ [kWh] & 10 & 10 & 5\\[2pt]
+        \multicolumn{4}{@{}l}{\textcolor{usachR}{\textbf{Reparto libre en el terciario}}}\\
+        plan [kW] & 1,5 & 0 & 0\\
+        lo que hace el lazo [kW] & 0,6 & 0,6 & 0,3\\[2pt]
+        \multicolumn{4}{@{}l}{\textcolor{verdeL}{\textbf{Con $\alpha_k$ fijo $=0{,}4/0{,}4/0{,}2$}}}\\
+        plan $=$ lo que hace el lazo [kW] & 0,6 & 0,6 & 0,3\\
+        energía en 4 h [kWh] & 2,4 & 2,4 & 1,2\\
+        $\Delta$SoC & 24\,\% & 24\,\% & 24\,\%\\
+      \end{tabular}\\[4pt]
+      Con reparto libre, MR$_2$ y MR$_3$ gastan energía que nadie les apartó. Con $\alpha_k$ fijo, lo planificado es lo que ocurre y todo sigue siendo un \textbf{LP}. Optimizar $\alpha_k$ lo vuelve bilineal: queda como extensión.};\end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+%  L4 — MODELO DEL ERROR
+% =====================================================================
+\begin{frame}{Cuánto margen guardar: el modelo del error}
+  \vspace{-0.30cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[kc=cS,text width=3.6cm,minimum height=1.75cm,anchor=north west] (A) at (0,0) {%
+      \kt{usachTd}{1. Pronóstico simple}\\[2pt]
+      mismo tramo de 15 min de los últimos $n$ días:\\[2pt]
+      $\hat D_\phi(t)=\frac1n\sum_{d=1}^{n}D_\phi(t-96d)$};
+    \node[kc=cS,text width=3.6cm,minimum height=1.75cm,anchor=north west] (B) at (4.25,0) {%
+      \kt{usachTd}{2. Su error, en la historia}\\[2pt]
+      $\xi_\phi=D_\phi-\hat D_\phi$ [kW]\\[1pt]
+      $\sigma_\phi(h)$: tamaño típico, por hora\\
+      $a_\phi$: cuánto persiste de un tramo al siguiente};
+    \node[kc=cT,text width=3.6cm,minimum height=1.75cm,anchor=north west] (C) at (8.5,0) {%
+      \kt{cT!85!black}{3. Margen al riesgo $\varepsilon$}\\[2pt]
+      $R^{\varepsilon}_\phi=q_{1-\varepsilon}(\xi_\phi)+m$\\[2pt]
+      alcanza en una fracción $1-\varepsilon$ de los casos};
+    \draw[ar=grisM] (A.east) -- (B.west);
+    \draw[ar=grisM] (B.east) -- (C.west);
+  \end{tikzpicture}\\[6pt]
+  \raggedright
+  \begin{columns}[T,onlytextwidth]
+    \column{.40\textwidth}
     \centering
-    \begin{tikzpicture}[x=0.62cm,y=0.85cm,font=\fontsize{5.8}{6.4}\selectfont]
+    \begin{tikzpicture}[x=0.62cm,y=0.85cm,font=\fontsize{6.6}{7.8}\selectfont]
       \fill[usachR!25] (2.33,0) -- plot[domain=2.33:3.4,samples=20] (\x,{1.5*exp(-((\x)^2)/2)}) -- (3.4,0) -- cycle;
-      \draw[gray!60,-{Latex[length=1.4mm]}] (-3.6,0) -- (3.8,0) node[below left]{$\xi_\phi$};
+      \draw[gray!60,-{Latex[length=1.4mm]}] (-3.6,0) -- (3.9,0) node[below left]{$\xi_\phi$};
       \draw[cT,line width=1pt] plot[domain=-3.4:3.4,samples=60,smooth] (\x,{1.5*exp(-((\x)^2)/2)});
       \draw[usachR,line width=.8pt] (2.33,0) -- (2.33,1.0);
       \node[usachR,anchor=south] at (2.33,1.0) {$q_{1-\varepsilon}$};
-      \node[usachR,anchor=west] at (2.75,0.3) {área $\varepsilon$};
-      \node at (0,-0.22) {0};
-    \end{tikzpicture}\\[2pt]
+      \node[usachR,anchor=west] at (2.75,0.32) {área $\varepsilon$};
+      \node at (0,-0.25) {0};
+    \end{tikzpicture}\\[3pt]
     \raggedright
-    \begin{tikzpicture}\node[kc=cT,text width=6.3cm]{%
-      \kt{cT!85!black}{Cómo se calcula $q_{1-\varepsilon}$}\\[2pt]
-      \begin{tabular}{@{}lcc@{}}
-        & $\varepsilon=5\,\%$ & $\varepsilon=1\,\%$\\\hline
-        Gaussiana: $z\,\sigma_\phi$, $z=\Phi^{-1}(1-\varepsilon)$ & $1{,}64\,\sigma_\phi$ & $2{,}33\,\sigma_\phi$\\
-        Cantelli (sin supuesto): $\sqrt{(1-\varepsilon)/\varepsilon}\,\sigma_\phi$ & $4{,}36\,\sigma_\phi$ & $9{,}95\,\sigma_\phi$\\
-        \textbf{Cuantil empírico de la historia (propuesta)} & \multicolumn{2}{c}{se lee directo}\\
-      \end{tabular}\\[3pt]
-      Precedente: en Europa la reserva FRR cubre el \textbf{99\,\% de los desbalances históricos}, por separado hacia arriba y hacia abajo [SOGL, art.~157].\\[1pt]
-      };\end{tikzpicture}
+    \begin{tikzpicture}\node[kc=grisM,text width=4.65cm]{%
+      \kt{grisM}{Qué cubre $m$}\\[2pt]
+      Lo que el promedio de 15 min no ve: variación dentro del tramo, error de medida y de seguimiento del PI.};\end{tikzpicture}
+
+    \column{.58\textwidth}
+    \begin{tikzpicture}\node[kc=cT,text width=7.0cm]{%
+      \kt{cT!85!black}{Cómo se obtiene $q_{1-\varepsilon}$ (con $\varepsilon=1\,\%$)}\\[3pt]
+      \begin{tabular}{@{}p{4.5cm}@{\hspace{6pt}}l@{}}
+        Gaussiana: $z\,\sigma_\phi$, $z=\Phi^{-1}(1-\varepsilon)$ & $2{,}33\,\sigma_\phi$\\
+        Sin supuesto (Cantelli) & $9{,}95\,\sigma_\phi$\\
+        \textbf{Cuantil empírico de la historia} & \textbf{propuesta}\\
+      \end{tabular}\\[4pt]
+      Precedente: la reserva FRR europea cubre el \textbf{99\,\% de los desbalances históricos}, por separado hacia arriba y hacia abajo [SOGL, art.~157].\\[4pt]
+      \kt{grisM}{Ejemplo (supuestos)}\\[1pt]
+      $\sigma_a=0{,}5$ kW, $z=2{,}33$, $m=0{,}2$ kW $\ \Rightarrow\ R^{\varepsilon}_a=1{,}37$ kW\\
+      Repartido con $\alpha=0{,}4/0{,}4/0{,}2$: $\ r_k=0{,}55/0{,}55/0{,}27$ kW};\end{tikzpicture}
   \end{columns}
 \end{frame}
 
 % =====================================================================
-%  L4 — REPARTO: FACTORES DE PARTICIPACIÓN
+%  L5 — ENERGÍA EN LA TRAYECTORIA
 % =====================================================================
-\begin{frame}{Reparto en la fase: factores de participación $\alpha_k$}
+\begin{frame}{El margen de energía crece con el horizonte}
   \vspace{-0.30cm}
   \begin{columns}[T,onlytextwidth]
-    \column{.44\textwidth}
+    \column{.49\textwidth}
+    \begin{tikzpicture}\node[kc=cS,text width=5.9cm]{%
+      \kt{usachTd}{Energía que entrega el IC$_k$ hasta el tramo $t$}\\[3pt]
+      \hspace*{4pt}$W_k(t)=\sum_{s\le t}\tilde P_k(s)\,\Delta t\ +\ \alpha_k\sum_{s\le t}\xi_\phi(s)\,\Delta t$\\[1pt]
+      \hspace*{4pt}{\color{grisM}\scriptsize plan $+$ previsto \hspace{2.1cm} error acumulado}\\[4pt]
+      \kt{usachTd}{El error acumulado crece (modelo AR(1), persistencia $a$)}\\[3pt]
+      \hspace*{4pt}$\sigma_{E,\phi}(n)=\sigma_\phi\,\Delta t\,\sqrt{f(n)}$\quad tras $n$ tramos\\[3pt]
+      \hspace*{4pt}$f(n)=\dfrac{n(1+a)}{1-a}-\dfrac{2a(1-a^{n})}{(1-a)^2}$\\[3pt]
+      $a=0$: $f=n$ (independientes)\quad $a\to1$: $f\to n^2$ (persistente)};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=cT,text width=5.9cm]{%
+      \kt{cT!85!black}{Restricción (c): toda la trayectoria}\\[3pt]
+      \hspace*{4pt}$W^{\min}_k(t)+\alpha_kZ^{\downarrow}_\phi(t)\ \le\ \sum_{s\le t}\tilde P_k(s)\Delta t$\\[2pt]
+      \hspace*{4pt}$\sum_{s\le t}\tilde P_k(s)\Delta t\ \le\ W^{\max}_k(t)-\alpha_kZ^{\uparrow}_\phi(t)$\\[3pt]
+      \hspace*{4pt}$Z_\phi(t)=\big(z\,\sigma_\phi\sqrt{f(t+1)}+m\big)\,\Delta t$\\[3pt]
+      Primer tramo: $Z_\phi=R^{\varepsilon}_\phi\,\Delta t$. El antiguo $\tau$ \textbf{es} $\Delta t=15$ min, porque cada 15 min se re-planifica con el SoC medido.};\end{tikzpicture}
+
+    \column{.49\textwidth}
     \centering
-    \begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
-      \node[blq=cL,text width=1.9cm] (D) at (0,1.9) {$\Delta P_\phi$\\ \scriptsize del PI de la fase};
-      \foreach \y/\k in {3.3/1,1.9/2,0.5/N}{
-        \node[blq=cP,text width=0.95cm,minimum height=0.7cm] (X\k) at (2.55,\y) {$\times\,\alpha_{\k}$};
-        \node[sm=cP] (S\k) at (3.85,\y) {$+$};
-        \node[blq=cP,text width=0.8cm,minimum height=0.7cm] (I\k) at (5.1,\y) {IC$_{\k}$};
-        \draw[ar=cP] (X\k) -- (S\k);
-        \draw[ar=cP] (S\k) -- (I\k);
-        \draw[ar=cT] (3.85,\y+0.65) node[above,font=\scriptsize,cT!85!black]{$P^*_{\k}$} -- (S\k);
-      }
-      \node[font=\small,cP] at (2.55,1.2) {$\vdots$};
-      \draw[line width=1.2pt,cL] (D.east) -- (1.55,1.9);
-      \draw[line width=1.2pt,cL] (1.55,0.5) -- (1.55,3.3);
-      \foreach \k in {1,2,N}{\draw[ar=cL] (1.55,0 |- X\k) -- (X\k.west);}
-      \node[jd=cL] at (1.55,1.9) {};
-    \end{tikzpicture}\\[6pt]
-    \begin{tikzpicture}\node[kc=cP,text width=5.3cm]{%
-      \kt{cP}{Lo que cada MR aporta}\\[2pt]
-      \hspace*{6pt}$\alpha_k\ge0,\qquad \sum_{k\in\mathcal N_\phi}\alpha_k=1$\\[1pt]
-      \hspace*{6pt}$\hat y_k=\alpha_k\,b_\phi$\quad (energía comprometida)\\[1pt]
-      \hspace*{6pt}$r^{\uparrow}_k=\alpha_k R^{\varepsilon\uparrow}_\phi,\quad r^{\downarrow}_k=\alpha_k R^{\varepsilon\downarrow}_\phi$\quad (margen)\\[2pt]
-      El terciario planifica \textbf{el mismo reparto} que después ejecuta el lazo, y la reserva de la fase se cumple por construcción: $\sum_k r_k=R^{\varepsilon}_\phi$.\\[1pt]
-      };\end{tikzpicture}
-
-    \column{.54\textwidth}
-    \begin{tikzpicture}\node[kc=cS,text width=6.55cm]{%
-      \kt{usachTd}{Criterio propuesto: proporcional a la energía útil}\\[2pt]
-      \hspace*{6pt}$\displaystyle \alpha_k=\frac{E_k}{\sum_{j\in\mathcal N_\phi}E_j}\ \Rightarrow\ \Delta\mathrm{SoC}_k=\frac{\alpha_k\,\Delta E_\phi}{E_k}=\frac{\Delta E_\phi}{\sum_j E_j}$\\[2pt]
-      Todas las MR de la fase gastan \textbf{el mismo $\Delta$SoC}: nadie se agota antes que las demás. $E_k$: energía útil de BESS y EV (la informa el secundario).\\[1pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=grisM,text width=6.55cm]{%
-      \kt{grisM}{Ejemplo ilustrativo: fase $a$ con tres MR}\\[3pt]
-      \centering
-      \begin{tabular}{@{}lccc@{}}
-        & MR$_1$ & MR$_2$ & MR$_3$\\\hline
-        $E_k$ [kWh] & 10 & 10 & 5\\
-        $\alpha_k$ & 0,4 & 0,4 & 0,2\\
-        $\hat y_k$ [kW] con $b_a=1{,}5$ kW & 0,60 & 0,60 & 0,30\\
-        $r_k$ [kW] con $R^{\varepsilon}_a=1{,}37$ kW & 0,55 & 0,55 & 0,27\\
-      \end{tabular}\\[2pt]
-      \raggedright
-      {\color{grisM}$R^{\varepsilon}_a=z\sigma_a+m$ con $\sigma_a=0{,}5$ kW, $z=2{,}33$, $m=0{,}2$ kW (supuestos).}\\[1pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=usachR,text width=6.55cm]{%
-      \kt{usachR}{Por qué $\alpha_k$ se fija antes de resolver}\\[2pt]
-      Si $\hat y_k$ y $r_k$ fueran libres, el lazo (que reparte en proporción fija) no ejecutaría lo planificado: haría falta $\hat y_k R_\phi=r_k b_\phi$, que es \textbf{bilineal}. Con $\alpha_k$ fijo, todo sigue siendo un \textbf{LP}. Optimizar $\alpha_k$ queda como extensión.\\[1pt]
-      };\end{tikzpicture}
-  \end{columns}
-\end{frame}
-
-% =====================================================================
-%  L5 — ENERGÍA EN TODA LA TRAYECTORIA
-% =====================================================================
-\begin{frame}{Energía en toda la trayectoria: el margen crece con el horizonte}
-  \vspace{-0.32cm}
-  \begin{columns}[T,onlytextwidth]
-    \column{.47\textwidth}
-    \begin{tikzpicture}\node[kc=cS,text width=5.75cm]{%
-      \kt{usachTd}{1. Energía que entrega el IC$_k$ hasta el tramo $t$}\\[2pt]
-      \hspace*{6pt}$W_k(t)=\underbrace{\textstyle\sum_{s\le t}\tilde P_k(s)\,\Delta t}_{\text{plan}+\text{previsto}}+\ \alpha_k\underbrace{\textstyle\sum_{s\le t}\xi_\phi(s)\,\Delta t}_{\text{error acumulado}}$\\[3pt]
-      \kt{usachTd}{2. El error acumulado no es $r\,\tau$: crece}\\[2pt]
-      Con error AR(1) de autocorrelación $a$, tras $n$ tramos:\\[1pt]
-      \hspace*{6pt}$\sigma_{E,\phi}(n)=\sigma_\phi\,\Delta t\,\sqrt{f(n)}$\\[1pt]
-      \hspace*{6pt}$f(n)=\dfrac{n(1+a)}{1-a}-\dfrac{2a(1-a^{n})}{(1-a)^2}$\\[2pt]
-      $a=0$: $\sqrt{f}=\sqrt n$\quad (errores independientes)\\
-      $a\to1$: $\sqrt{f}\to n$\quad (sesgo persistente)\\[2pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=cT,text width=5.75cm]{%
-      \kt{cT!85!black}{3. Restricción (c), acabada}\\[2pt]
-      \hspace*{2pt}$W^{\min}_k(t)+\alpha_k Z^{\downarrow}_\phi(t)\le\textstyle\sum_{s\le t}\tilde P_k(s)\Delta t\le W^{\max}_k(t)-\alpha_k Z^{\uparrow}_\phi(t)$\\[2pt]
-      \hspace*{6pt}$Z_\phi(t)=\big(z\,\sigma_\phi\sqrt{f(t+1)}+m\big)\Delta t$\\[2pt]
-      En el primer tramo $Z_\phi=R^{\varepsilon}_\phi\Delta t$: el antiguo $\tau$ \textbf{es} $\Delta t$, el período con que se re-planifica con el SoC medido.\\[1pt]
-      };\end{tikzpicture}
-
-    \column{.51\textwidth}
-    \centering
-    \begin{tikzpicture}[x=1.45cm,y=1.0cm,font=\fontsize{6.4}{7.6}\selectfont]
-      \node[font=\fontsize{6.8}{8}\selectfont\bfseries,anchor=west,align=left] at (-0.35,3.75) {Margen de energía de la fase $Z_\phi$ [kWh] según el horizonte\\ {\mdseries ($\sigma=0{,}5$ kW, $z=2{,}33$, $m=0{,}2$ kW; ilustrativo)}};
-      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (4.3,0) node[below left]{horizonte [h]};
-      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (0,3.35);
-      \foreach \x in {0,1,2,3,4}{\draw[gray!60] (\x,0) -- (\x,-0.06) node[below]{\x};}
-      \foreach \v in {1,2,3}{\draw[gray!60] (0,\v) -- (-0.06,\v) node[left]{\v};\draw[gray!15] (0,\v) -- (4.1,\v);}
-      % r tau constante
+    \begin{tikzpicture}[x=1.3cm,y=0.92cm,font=\fontsize{6.6}{7.8}\selectfont]
+      \node[font=\fontsize{7.4}{9}\selectfont\bfseries,anchor=west] at (-0.4,3.75) {Margen de energía de la fase, $Z_\phi$ [kWh]};
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (4.3,0);
+      \draw[gray!60,-{Latex[length=1.5mm]}] (0,0) -- (0,3.45);
+      \foreach \x in {0,1,2,3,4}{\draw[gray!60] (\x,0) -- (\x,-0.07) node[below]{\x};}
+      \node at (2,-0.62) {horizonte [h]};
+      \foreach \v in {1,2,3}{\draw[gray!60] (0,\v) -- (-0.07,\v) node[left]{\v}; \draw[gray!15] (0,\v) -- (4.1,\v);}
       \draw[usachR,line width=1.3pt,densely dashed] (0.25,0.3425) -- (4,0.3425);
-      \node[usachR,anchor=south east] at (4.05,0.36) {$R^{\varepsilon}\tau$ constante (formulación anterior)};
-      % a = 0
       \draw[cP,line width=1.3pt] plot[smooth] coordinates {(0.25,0.341) (0.5,0.462) (0.75,0.554) (1,0.633) (1.5,0.763) (2,0.874) (3,1.059) (4,1.215)};
-      \node[cP,anchor=west] at (4.02,1.215) {$a=0$};
-      % a = 0.8
       \draw[cT,line width=1.3pt] plot[smooth] coordinates {(0.25,0.341) (0.5,0.603) (0.75,0.847) (1,1.075) (1.5,1.491) (2,1.862) (3,2.500) (4,3.036)};
-      \node[cT!85!black,anchor=west] at (4.02,3.036) {$a=0{,}8$};
       \fill[cT] (4,3.036) circle (1.6pt);
-    \end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=grisM,text width=6.3cm]{%
-      \kt{grisM}{Qué significa en la MR$_1$ ($\alpha_1=0{,}4$) a las 4 h, con $a=0{,}8$}\\[2pt]
-      Energía comprometida: $0{,}6\ \mathrm{kW}\times4\ \mathrm{h}=2{,}4$ kWh. Margen: $0{,}4\times3{,}04=1{,}21$ kWh. Total: $3{,}6$ kWh de su banda de 10 kWh. Con $R^{\varepsilon}\tau$ se habrían apartado solo $0{,}14$ kWh.\\[2pt]
-      \kt{grisM}{Dos variantes a comparar en simulación}\\[1pt]
-      \textbf{(c-i)} $Z$ solo en el primer tramo (optimista).\quad \textbf{(c-ii)} $Z(t)$ creciente (conservadora).\\[1pt]
-      };\end{tikzpicture}
+      \node[cT!85!black,anchor=south east] at (3.95,3.06) {3,04};
+      \node[cP,anchor=south east] at (3.95,1.24) {1,22};
+    \end{tikzpicture}\\[2pt]
+    \raggedright
+    {\fontsize{6.8}{8.2}\selectfont
+    \textcolor{cT}{\rule[2pt]{0.5cm}{1.3pt}} error persistente ($a=0{,}8$)\quad
+    \textcolor{cP}{\rule[2pt]{0.5cm}{1.3pt}} independiente ($a=0$)\\
+    \textcolor{usachR}{\rule[2pt]{0.5cm}{1.3pt}} $R^{\varepsilon}\tau$ constante (formulación anterior)\\[1pt]
+    \textcolor{grisM}{$\sigma=0{,}5$ kW, $z=2{,}33$, $m=0{,}2$ kW (supuestos)}\par}
+    \vspace{4pt}
+    \begin{tikzpicture}\node[kc=grisM,text width=5.9cm]{%
+      MR$_1$ ($\alpha_1=0{,}4$), 4 h, $a=0{,}8$: comprometida $2{,}4$ kWh $+$ margen $0{,}4\times3{,}04=1{,}21$ kWh $=3{,}6$ kWh de 10. Con $R^{\varepsilon}\tau$: solo $0{,}14$ kWh.};\end{tikzpicture}
   \end{columns}
 \end{frame}
 
@@ -380,119 +366,126 @@
 %  L6 — LP COMPLETO
 % =====================================================================
 \begin{frame}{Terciario: el LP completo}
-  \vspace{-0.32cm}
+  \vspace{-0.30cm}
   \begin{columns}[T,onlytextwidth]
-    \column{.42\textwidth}
-    \begin{tikzpicture}\node[kc=cS,text width=5.15cm]{%
-      \kt{usachTd}{Conjuntos}\\[1pt]
-      $\phi\in\{a,b,c\}$;\ $k\in\mathcal N_\phi$;\ $t=0,\dots,T-1$;\ $T=48$;\ $\Delta t=0{,}25$ h\\[3pt]
-      \kt{usachTd}{Parámetros (medidos, pronosticados o de diseño)}\\[1pt]
-      $c(t)$ [\$/kWh]: tarifa\\
-      $\hat P_{L,\mathrm{tot}}(t)$, $\hat D_\phi(t)$ [kW]: pronósticos\\
-      $P^{\min/\max}_k(t)$ [kW], $W^{\min/\max}_k(t)$ [kWh]: envolvente (ya ajustada por $\bar\varepsilon_k$)\\
-      $\alpha_k$ [--]: participación\\
-      $R^{\varepsilon\uparrow\downarrow}_\phi(t)$ [kW], $Z^{\uparrow\downarrow}_\phi(t)$ [kWh]: margen\\
-      $\bar\rho$ [kW]: residual admisible\\
-      $W^{\mathrm{fin}}_k$ [kWh]: energía que debe quedar al final\\[3pt]
-      \kt{usachTd}{Variables de decisión}\\[1pt]
-      $P^*_k(t)$, $\rho_\phi(t)$, $g(t)$\\[1pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=cP,text width=5.15cm]{%
-      \kt{cP}{Horizonte rodante, cada 15 min}\\[1pt]
-      SoC medido $\to$ envolventes $\to$ $\hat D_\phi$ corregido $\to$ resolver $\to$ aplicar solo $t=0$.\\
-      A IC$_k$: $P^*_k(0)$, $\alpha_k$.\quad Al lazo de $\phi$: $b_\phi(0)$, $R^{\varepsilon}_\phi(0)$.\\[1pt]
-      };\end{tikzpicture}
+    \column{.38\textwidth}
+    \begin{tikzpicture}\node[kc=cS,text width=4.5cm]{%
+      \kt{usachTd}{Variables de decisión}\\[2pt]
+      $P^*_k(t)$ [kW]: plan de cada IC\\
+      $\rho_\phi(t)$ [kW]: residual aceptado\\
+      $g(t)$ [kW]: compra a la S/E};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=grisM,text width=4.5cm]{%
+      \kt{grisM}{Parámetros que entran}\\[2pt]
+      $c(t)$: tarifa\\
+      $\hat P_{L,\mathrm{tot}}(t)$, $\hat D_\phi(t)$: pronósticos\\
+      $P^{\min/\max}_k$, $W^{\min/\max}_k$: envolvente\\
+      $\alpha_k$: participación\\
+      $R^{\varepsilon}_\phi(t)$, $Z_\phi(t)$: margen\\
+      $\bar\rho$: residual admisible\\
+      $W^{\mathrm{fin}}_k$: energía al final del horizonte};\end{tikzpicture}\\[5pt]
+    \begin{tikzpicture}\node[kc=cP,text width=4.5cm]{%
+      \kt{cP}{Cada 15 min (horizonte rodante)}\\[2pt]
+      medir SoC $\to$ resolver con $T=48$ tramos de $0{,}25$ h $\to$ aplicar solo el primero};\end{tikzpicture}
 
-    \column{.56\textwidth}
-    \begin{tikzpicture}\node[kc=cT,text width=7.0cm]{%
+    \column{.60\textwidth}
+    \begin{tikzpicture}\node[kc=cT,text width=7.2cm]{%
       \kt{cT!85!black}{Objetivo: solo energía}\\[2pt]
-      \hspace*{6pt}$\displaystyle\min\ \sum_{t}c(t)\,g(t)\,\Delta t$\\[3pt]
-      \kt{cT!85!black}{Definiciones (lineales en $P^*$ y $\rho$)}\\[1pt]
-      \hspace*{6pt}$S_\phi=\sum_{k\in\mathcal N_\phi}P^*_k,\quad \bar S=\tfrac13\sum_\psi S_\psi,\quad \hat e_\phi=\hat D_\phi-(S_\phi-\bar S)$\\[1pt]
-      \hspace*{6pt}$b_\phi=\hat e_\phi-\rho_\phi,\quad \hat y_k=\alpha_k\,b_\phi,\quad \tilde P_k=P^*_k+\hat y_k$\\[3pt]
-      \kt{cT!85!black}{Restricciones, para todo $t$, $\phi$ y $k\in\mathcal N_\phi$}\\[1pt]
-      \textbf{(0)} compra:\ \ $g\ge\hat P_{L,\mathrm{tot}}-\sum_k\tilde P_k,\quad g\ge0$\\[2pt]
-      \textbf{(a)} residual:\ \ $|\rho_\phi|\le\bar\rho,\quad \sum_\phi\rho_\phi=0$\\[2pt]
-      \textbf{(b)} potencia:\ \ $P^{\min}_k+\alpha_kR^{\varepsilon\downarrow}_\phi\le\tilde P_k\le P^{\max}_k-\alpha_kR^{\varepsilon\uparrow}_\phi$\\[2pt]
-      \textbf{(c)} energía:\ \ $W^{\min}_k(t)+\alpha_kZ^{\downarrow}_\phi(t)\le\sum_{s\le t}\tilde P_k(s)\Delta t\le W^{\max}_k(t)-\alpha_kZ^{\uparrow}_\phi(t)$\\[2pt]
-      \textbf{(d)} margen de la fase:\ \ $\sum_k r_k=R^{\varepsilon}_\phi$, se cumple por construcción\\[2pt]
-      \textbf{(e)} final del horizonte:\ \ $\sum_{s<T}\tilde P_k(s)\Delta t\le W^{\mathrm{fin}}_k$\\[2pt]
-      };\end{tikzpicture}\\[4pt]
-    \begin{tikzpicture}\node[kc=grisM,text width=7.0cm]{%
-      \kt{grisM}{Qué agrega esta formulación}\\[1pt]
-      $\bullet$ La compra usa $\tilde P_k$, no $P^*_k$; con $\sum_\phi\rho_\phi=0$ el balance previsto no mueve la compra total.\\
-      $\bullet$ (c) usa $Z_\phi(t)$, que crece con el horizonte, en vez de $r\tau$ constante.\\
-      $\bullet$ (e) evita que el LP vacíe las baterías al final de las 12 h.\\[1pt]
-      };\end{tikzpicture}
+      \hspace*{4pt}$\min\ \sum_{t}c(t)\,g(t)\,\Delta t$\\[4pt]
+      \kt{cT!85!black}{Definiciones}\\[2pt]
+      \hspace*{4pt}$S_\phi=\sum_{k\in\mathcal N_\phi}P^*_k,\quad \bar S=\tfrac13\sum_\psi S_\psi,\quad \hat e_\phi=\hat D_\phi-(S_\phi-\bar S)$\\[2pt]
+      \hspace*{4pt}$b_\phi=\hat e_\phi-\rho_\phi,\quad \hat y_k=\alpha_k\,b_\phi,\quad \tilde P_k=P^*_k+\hat y_k$\\[4pt]
+      \kt{cT!85!black}{Restricciones (todo $t$, $\phi$, $k\in\mathcal N_\phi$)}\\[2pt]
+      \textbf{(0)} compra: $\ g\ge\hat P_{L,\mathrm{tot}}-\sum_k\tilde P_k,\quad g\ge0$\\[3pt]
+      \textbf{(a)} residual: $\ |\rho_\phi|\le\bar\rho,\quad \sum_\phi\rho_\phi=0$\\[3pt]
+      \textbf{(b)} potencia: $\ P^{\min}_k+\alpha_kR^{\varepsilon\downarrow}_\phi\le\tilde P_k\le P^{\max}_k-\alpha_kR^{\varepsilon\uparrow}_\phi$\\[3pt]
+      \textbf{(c)} energía: $\ W^{\min}_k(t)+\alpha_kZ^{\downarrow}_\phi(t)\le\sum_{s\le t}\tilde P_k(s)\Delta t$\\[1pt]
+      \hspace*{1.55cm}$\sum_{s\le t}\tilde P_k(s)\Delta t\le W^{\max}_k(t)-\alpha_kZ^{\uparrow}_\phi(t)$\\[3pt]
+      \textbf{(d)} margen de la fase: $\ \sum_k r_k=R^{\varepsilon}_\phi$ (se cumple solo)\\[3pt]
+      \textbf{(e)} final: $\ \sum_{s<T}\tilde P_k(s)\Delta t\le W^{\mathrm{fin}}_k$\\[4pt]
+      {\color{grisM}Todo es lineal porque $\alpha_k$, $R^{\varepsilon}$ y $Z$ son datos.}};\end{tikzpicture}
   \end{columns}
 \end{frame}
 
 % =====================================================================
-%  L7 — LAZO RÁPIDO COHERENTE
+%  L7 — LAZO RÁPIDO
 % =====================================================================
 \begin{frame}{Lazo rápido coherente con el terciario}
   \vspace{-0.30cm}
   \centering
   \resizebox{\linewidth}{!}{%
   \begin{tikzpicture}[x=1cm,y=1cm,font=\small]
-    \fill[cL!7,rounded corners=4pt] (1.6,0.2) rectangle (13.05,3.6);
-    \node[font=\small\bfseries,cL!80!black,anchor=north west] at (1.7,3.55) {Lazo rápido de la fase $\phi$ (en la cabecera, cada $\sim$1 s) \;—\; uno por fase};
-    \fill[cP!7,rounded corners=4pt] (13.35,-0.55) rectangle (18.6,4.3);
-    \node[font=\small\bfseries,cP,anchor=south west] at (13.45,-0.5) {En cada IC de la fase $\phi$};
-    \node[blq=gray!60!black,text width=1.55cm] (M) at (0.75,1.75) {Cabecera\\ mide $P_{h,\phi}$\\ $\phi=a,b,c$};
-    \node[blq=cL,text width=1.5cm] (Av) at (3.15,1.0) {promedio\\ $\bar P_h=\tfrac13\sum_\psi P_{h,\psi}$};
-    \node[sm=cL] (E) at (4.95,2.35) {$\Sigma$};
-    \node[font=\scriptsize,anchor=south east] at (4.8,2.55) {$+$};
-    \node[font=\scriptsize,anchor=north west] at (5.0,2.05) {$-$};
-    \node[sm=cL] (E2) at (6.05,2.35) {$\Sigma$};
-    \node[font=\scriptsize,anchor=south east] at (5.9,2.55) {$+$};
-    \node[font=\scriptsize,anchor=north west] at (6.1,2.05) {$-$};
-    \node[blq=cL,text width=3.3cm] (PI) at (8.55,2.35) {PI con anti-windup\\ limitado a\\ $[\,b_\phi-R^{\varepsilon\downarrow}_\phi,\ b_\phi+R^{\varepsilon\uparrow}_\phi\,]$};
-    \node[blq=cL!70!black,text width=2.2cm,font=\scriptsize] (U) at (11.65,1.05) {uso del margen\\ $u_\phi=\dfrac{\Delta P_\phi-b_\phi}{R^{\varepsilon}_\phi}$};
-    \foreach \y/\k in {3.35/1,1.85/2,0.35/N}{
-      \node[blq=cP,text width=1.15cm,minimum height=0.7cm] (X\k) at (14.4,\y) {$\times\,\alpha_{\k}$};
-      \node[sm=cP] (S\k) at (16.05,\y) {$+$};
-      \node[blq=cP,text width=0.9cm,minimum height=0.7cm] (I\k) at (17.75,\y) {IC$_{\k}$};
-      \draw[ar=cP] (X\k) -- node[below,font=\scriptsize]{$\Delta P_{\k}$} (S\k);
-      \draw[ar=cP] (S\k) -- (I\k);
-      \draw[ar=cT] (16.05,\y+0.62) -- (S\k);
-      \node[font=\scriptsize,cT!85!black,anchor=east] at (15.98,\y+0.55) {$P^*_{\k}$};
+    \fill[cL!7,rounded corners=4pt] (2.25,-0.65) rectangle (12.45,3.95);
+    \node[font=\small\bfseries,cL!80!black,anchor=south west] at (2.35,-0.6) {Lazo rápido de la fase $\phi$ (en la cabecera, cada $\sim$1 s)};
+    \fill[cP!7,rounded corners=4pt] (12.65,-0.65) rectangle (17.45,3.95);
+    \node[font=\small\bfseries,cP,anchor=south west] at (12.75,-0.6) {En cada IC de la fase};
+    \node[blq=gray!60!black,text width=1.6cm] (M) at (0.95,2.0) {Cabecera\\ mide $P_{h,\phi}$\\ en las 3 fases};
+    \node[blq=cL,text width=2.4cm] (EB) at (3.75,2.0) {error de la fase\\ $e_\phi=P_{h,\phi}-\bar P_h$};
+    \node[sm=cL] (S) at (5.75,2.0) {$\Sigma$};
+    \node[font=\scriptsize] at (5.32,2.38) {$+$};
+    \node[font=\scriptsize] at (6.15,1.6) {$-$};
+    \node[blq=cL,text width=3.3cm] (PI) at (8.8,2.0) {PI con anti-windup\\ salida limitada a\\ $[\,b_\phi-R^{\varepsilon\downarrow}_\phi,\;b_\phi+R^{\varepsilon\uparrow}_\phi\,]$};
+    \node[blq=cL!70!black,text width=2.0cm,font=\scriptsize] (U) at (11.35,0.55) {uso del margen\\ $u_\phi=\dfrac{\Delta P_\phi-b_\phi}{R^{\varepsilon}_\phi}$};
+    \draw[ar=gray!60!black] (M) -- (EB);
+    \draw[ar=cL] (EB) -- (S);
+    \draw[ar=cL] (S) -- node[above,font=\scriptsize]{$e_\phi-\rho_\phi$} (PI);
+    \draw[ar=cT,densely dotted] (5.75,0.75) node[below,font=\scriptsize,cT!85!black]{$\rho_\phi$} -- (S.south);
+    \draw[ar=cT,densely dotted] (8.8,4.55) node[above,font=\scriptsize,cT!85!black]{$b_\phi,\ R^{\varepsilon}_\phi$ (del terciario)} -- (PI.north);
+    \draw[line width=1.3pt,cL] (PI.east) -- node[pos=0.3,above,font=\scriptsize]{$\Delta P_\phi$} (12.95,2.0);
+    \draw[ar=cL,densely dotted] (11.35,2.0) -- (U.north);
+    \node[jd=cL] at (11.35,2.0) {};
+    \draw[line width=1.3pt,cL] (12.95,0.5) -- (12.95,3.4);
+    \node[jd=cL] at (12.95,2.0) {};
+    \foreach \y/\k in {3.4/1,2.0/2,0.5/N}{
+      \node[blq=cP,text width=0.95cm,minimum height=0.65cm] (X\k) at (14.0,\y) {$\times\,\alpha_{\k}$};
+      \node[sm=cP] (P\k) at (15.35,\y) {$+$};
+      \node[blq=cP,text width=0.8cm,minimum height=0.65cm] (I\k) at (16.75,\y) {IC$_{\k}$};
+      \draw[ar=cL] (12.95,\y) -- (X\k.west);
+      \draw[ar=cP] (X\k) -- (P\k);
+      \draw[ar=cP] (P\k) -- (I\k);
     }
-    \node[font=\small,cP] at (14.4,1.15) {$\vdots$};
-    \draw[ar=gray!60!black] (M.east) ++(0,0.6) -| node[pos=.25,above,font=\scriptsize]{$P_{h,\phi}$} (E.north);
-    \draw[ar=gray!60!black] (M.east) ++(0,-0.75) -- (Av.west);
-    \draw[ar=cL] (Av.east) -| (E.south);
-    \draw[ar=cL] (E) -- (E2);
-    \node[font=\scriptsize,anchor=south] at (5.5,2.4) {$e_\phi$};
-    \draw[ar=cL] (E2) -- (PI);
-    \draw[ar=cT,densely dotted] (6.05,1.3) node[below,font=\scriptsize,cT!85!black]{$\rho_\phi$} -- (E2.south);
-    \draw[line width=1.3pt,cL] (PI.east) -- node[pos=0.2,above,font=\scriptsize]{$\Delta P_\phi$} (13.6,2.35);
-    \draw[ar=cL,densely dotted] (11.65,2.35) -- (U.north);
-    \node[jd=cL] at (11.65,2.35) {};
-    \draw[line width=1.3pt,cL] (13.6,0.35) -- (13.6,3.35);
-    \foreach \k in {1,2,N}{\draw[ar=cL] (13.6,0 |- X\k) -- (X\k.west);}
-    \node[jd=cL] at (13.6,2.35) {};
-    \draw[ar=cT,densely dotted] (8.55,0.75) node[below,font=\scriptsize,cT!85!black]{$b_\phi,\ R^{\varepsilon}_\phi$ (del terciario)} -- (PI.south);
+    \draw[ar=cT] (15.35,4.3) node[above,font=\scriptsize,cT!85!black]{$P^*_1$} -- (P1.north);
+    \draw[ar=cT] (15.95,2.75) node[right,font=\scriptsize,cT!85!black]{$P^*_2$} -- (P2.north east);
+    \draw[ar=cT] (15.95,1.25) node[right,font=\scriptsize,cT!85!black]{$P^*_N$} -- (PN.north east);
+    \node[font=\small,cP] at (14.0,1.3) {$\vdots$};
   \end{tikzpicture}}
 
-  \vspace{3pt}
+  \vspace{4pt}
   \begin{columns}[T,onlytextwidth]
     \column{.325\textwidth}
-    \begin{tikzpicture}\node[kc=cL,text width=3.85cm,minimum height=2.3cm]{%
-      \kt{verdeL}{1. Por qué la banda es $b_\phi\pm R^{\varepsilon}_\phi$}\\[2pt]
-      En régimen nominal $\Delta P_\phi\approx b_\phi$, que puede ser mayor que el margen ($1{,}5>1{,}37$ kW en el ejemplo). Con límite $\pm\sum r_k$ el PI se saturaría todo el evento. Con $b_\phi\pm R^{\varepsilon}_\phi$: $u_\phi=0$ en lo nominal y $|u_\phi|\le1$ con probabilidad $1-\varepsilon$.};\end{tikzpicture}
+    \begin{tikzpicture}\node[kc=cL,text width=3.8cm,minimum height=1.6cm]{%
+      \kt{verdeL}{1. Banda $b_\phi\pm R^{\varepsilon}_\phi$}\\[2pt]
+      Ej.: $b=1{,}5$, $R=1{,}37$ kW $\Rightarrow$ $\Delta P\in[0{,}13;\,2{,}87]$ kW. Con $\pm1{,}37$ el PI quedaría saturado toda la tarde solo por lo previsible.};\end{tikzpicture}
     \column{.335\textwidth}
-    \begin{tikzpicture}\node[kc=cT,text width=3.95cm,minimum height=2.3cm]{%
-      \kt{cT!85!black}{2. Balance y compra}\\[2pt]
-      El lazo lleva $e_\phi$ a $\rho_\phi$ (normalmente $0$), no gasta margen en el residual aceptado.\\
-      $\sum_\phi e_\phi=0$ y $\sum_\phi\rho_\phi=0\Rightarrow\sum_\phi\Delta P_\phi=0$ sin saturación: la compra total no cambia. Si una fase se satura, sí cambia.};\end{tikzpicture}
+    \begin{tikzpicture}\node[kc=cT,text width=3.9cm,minimum height=1.6cm]{%
+      \kt{cT!85!black}{2. La compra no cambia}\\[2pt]
+      $\sum_\phi e_\phi=0$ y $\sum_\phi\rho_\phi=0$ $\Rightarrow$ $\sum_\phi\Delta P_\phi=0$ si ninguna fase se satura. El lazo no gasta margen en el residual aceptado.};\end{tikzpicture}
     \column{.325\textwidth}
-    \begin{tikzpicture}\node[kc=cP,text width=3.85cm,minimum height=2.3cm]{%
-      \kt{cP}{3. Dos formas equivalentes en el IC}\\[2pt]
-      $P_{\mathrm{ref},k}=P^*_k+\alpha_k\Delta P_\phi$\\[1pt]
+    \begin{tikzpicture}\node[kc=cP,text width=3.8cm,minimum height=1.6cm]{%
+      \kt{cP}{3. Lo mismo, visto en el IC}\\[2pt]
+      $P_{\mathrm{ref},k}=P^*_k+\alpha_k\Delta P_\phi$\\
       $\phantom{P_{\mathrm{ref},k}}=P^*_k+\hat y_k+u_\phi\,r_k$\\[2pt]
-      $\hat y_k$ puede llegar como \textbf{prealimentación} (el PI solo corrige el error) o la alcanza el integrador.};\end{tikzpicture}
+      $\hat y_k$ puede ir como prealimentación.};\end{tikzpicture}
   \end{columns}
+\end{frame}
+
+% =====================================================================
+%  L8 — DECISIONES A VALIDAR
+% =====================================================================
+\begin{frame}{Decisiones que necesito validar}
+  \vspace{-0.30cm}
+  \begin{tikzpicture}\node[kc=cS,text width=12.25cm,font=\fontsize{7.2}{9}\selectfont]{%
+    \renewcommand{\arraystretch}{1.25}%
+    \begin{tabular}{@{}>{\bfseries}p{2.9cm}p{4.8cm}p{3.9cm}@{}}
+      \textcolor{usachTd}{Decisión} & \textcolor{usachTd}{\textbf{Propuesta}} & \textcolor{usachTd}{\textbf{Alternativa}}\\\hline
+      1. Reparto en la fase & $\alpha_k=E_k/\sum_jE_j$ (mismo $\Delta$SoC), fijo en cada resolución & optimizar $\alpha_k$ (LP secuencial)\\
+      2. Riesgo y margen & $\varepsilon=1\,\%$, cuantil empírico del error $+\,m$ & gaussiano $z\sigma_\phi+m$\\
+      3. Margen de energía & $Z_\phi(t)$ creciente; comparar con solo el primer tramo & solo el primer tramo\\
+      4. Lo previsible en el IC & $\hat y_k$ como prealimentación; el PI corrige solo el error & que lo alcance el integrador\\
+      5. Residual $\bar\rho$ & límite de desbalance aceptado (norma o diseño) & $\bar\rho=0$ con holgura penalizada\\
+      6. Fin del horizonte & SoC objetivo al final de las 12 h ($W^{\mathrm{fin}}_k$) & valorar la energía final en el objetivo\\
+      7. Pronóstico & naive estacional (mismo tramo, $n$ días) & corregido con la última medición\\
+      8. Lado AC del IC & el IC no regula $V_{dc}$ (lo hacen BESS y secundario) & que el IC regule $V_{dc}$\\
+    \end{tabular}};\end{tikzpicture}
 \end{frame}
 
 \end{document}

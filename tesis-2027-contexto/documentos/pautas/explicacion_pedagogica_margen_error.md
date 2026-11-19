@@ -1,0 +1,138 @@
+# Explicación pedagógica: margen de error del terciario y lazo rápido
+
+Versión en simple de la formulación para la reunión del 23-nov-2026. Todo cabe en **tres ideas**, y cada cambio sale de alguna de ellas. Usa siempre el mismo ejemplo para que los números se vean moverse. La derivación rigurosa está en `documento_formulacion_terciario_lazo_rapido.md`.
+
+---
+
+## El ejemplo
+
+- **Fase a** con **3 Micro-redes**, cada una con su propio IC: MR1 (10 kWh de batería útil), MR2 (10 kWh) y MR3 (5 kWh).
+- Todas las tardes, de 18 a 22 h, la fase a queda **más cargada** que las otras por los clientes monofásicos: en promedio **1,5 kW más**.
+- El pronóstico se equivoca: a veces es 1,2 kW, a veces 1,9 kW. Error típico: **σ = 0,5 kW**.
+
+La pregunta de fondo: **¿quién pone esa energía y cuánta batería hay que guardar para eso?**
+
+---
+
+## Idea 1: hay dos tipos de desbalance, y se tratan distinto
+
+Piensa en el presupuesto de una casa:
+- **El arriendo** se sabe que llega todos los meses: se **planifica** y se aparta la plata.
+- **Una gotera** no se sabe cuándo llega: para eso hay un **fondo de emergencia**.
+
+Pagar el arriendo con el fondo de emergencia es un error: se agota en dos semanas y la siguiente gotera te pilla sin nada.
+
+| | Casa | Tu sistema | Cómo se guarda |
+|---|---|---|---|
+| Previsible | arriendo | los 1,5 kW de 18 a 22 h | **energía** planificada: 1,5 kW × 4 h = **6 kWh** |
+| Sorpresa | gotera | el error del pronóstico, ±0,5 kW | **margen** de potencia (y su energía) |
+
+**La formulación anterior pagaba el arriendo con el fondo de emergencia:** cubría los 1,5 kW previsibles solo con reserva de potencia pensada para 15 min. El lazo rápido igual iba a gastar esos 6 kWh, pero nadie los había apartado. Por eso la batería "se agotaba a las 20:40".
+
+---
+
+## Idea 2: el lazo rápido es "plan + reacción proporcional"
+
+El lazo rápido es como un **termostato**: no sabe de planes ni de tarifas. Mide la cabecera cada segundo y, si la fase a está más cargada que el promedio, pide a los IC de esa fase que inyecten más.
+
+Esa corrección se reparte entre los 3 IC **siempre en las mismas proporciones**, como un equipo que divide el trabajo por porcentajes fijos: MR1 el 40 %, MR2 el 40 % y MR3 el 20 %. Esos porcentajes son los **α_k**:
+
+```
+lo que hace el IC_k = su plan (P*_k) + su porcentaje (α_k) × la corrección de la fase (ΔP_a)
+```
+
+A esta forma, "plan fijo más reacción proporcional a lo que se mide", se le llama **política afín**. Es la misma estructura de la reserva secundaria clásica de los sistemas de potencia (Warrington et al., 2013), donde los porcentajes se llaman **factores de participación**.
+
+**Por qué importa:** si los porcentajes son fijos, **el terciario puede predecir cuánto gastará cada Micro-red** y guardarle exactamente eso.
+
+---
+
+## Idea 3: el terciario guarda energía y margen pensando en cómo va a actuar el lazo
+
+### Cambio 1: el reparto previsto tiene que ser el reparto real (α_k)
+
+Si el terciario planifica que los 1,5 kW los ponga **toda la MR1**, el lazo, que no conoce ese plan, reparte 40/40/20:
+
+| | MR1 | MR2 | MR3 |
+|---|---|---|---|
+| Lo que planificó el terciario | 1,5 kW | 0 | 0 |
+| Lo que hace el lazo | 0,6 kW | 0,6 kW | 0,3 kW |
+
+MR2 y MR3 gastan batería que nadie les apartó. **Solución:** fijar los porcentajes antes y usarlos para todo.
+
+**Por qué proporcional al tamaño de la batería:** con 6 kWh en total, MR1 gasta 2,4 de 10 (24 %), MR2 2,4 de 10 (24 %) y MR3 1,2 de 5 (24 %). **Todas bajan lo mismo**: ninguna se agota antes.
+
+**Por qué fijo y no optimizado:** si fuera variable, aparecen productos de variables y el problema deja de ser un LP.
+
+### Cambio 2: cuánto margen guardar para la sorpresa
+
+¿Qué tamaño debe tener el fondo de emergencia? Depende de **cuán grandes suelen ser las goteras** y de **cuánto riesgo aceptas**:
+- **σ** sale del historial: cuánto se equivoca normalmente el pronóstico.
+- **ε** es el riesgo aceptado (1 % significa que el margen alcanza el 99 % de las veces).
+- **z** convierte ese riesgo en "cuántas σ guardar" (2,33 para el 1 %, si el error es gaussiano).
+- **m** es un extra pequeño por lo que el promedio de 15 min no ve.
+
+Ejemplo: 2,33 × 0,5 + 0,2 = **1,37 kW**, repartido como **0,55 / 0,55 / 0,27 kW**. Así se dimensiona la reserva en Europa: cubriendo el 99 % de los desbalances históricos.
+
+### Cambio 3: el margen de energía crece con el tiempo
+
+Una caminata con la brújula un poco descalibrada: en 15 minutos te desvías poco; en 4 horas, mucho, sobre todo si la brújula **siempre** se equivoca hacia el mismo lado. Si hoy la demanda viene más alta de lo pronosticado, lo más probable es que siga así toda la tarde, y la batería gastada se **acumula**.
+
+| Horizonte | Margen de energía de la fase (errores persistentes) |
+|---|---|
+| 15 min | 0,34 kWh |
+| 1 h | 1,07 kWh |
+| 4 h | 3,04 kWh |
+
+La formulación anterior guardaba **siempre 0,34 kWh** (r·τ). En el primer tramo coincide porque cada 15 min se vuelve a medir el SoC y se re-planifica: **τ es simplemente 15 min**. Para las horas siguientes, el margen crece.
+
+### Cambio 4: los límites del PI (b ± R)
+
+Antes, el PI se limitaba a **±1,37 kW**. Pero el lazo tiene que entregar **también** lo previsible, y 1,5 > 1,37: quedaba saturado toda la tarde y sin nada para las sorpresas.
+
+**Solución:** centrar la banda en lo previsible, entre **0,13 y 2,87 kW**. En un día normal queda cerca de 1,5 kW; si hay sorpresa, tiene ±1,37 kW para responder. El sueldo cubre el arriendo y el fondo de emergencia queda intacto.
+
+### Cambio 5: contabilidad del LP
+
+1. La compra se calcula con **lo que realmente harán los IC** (plan + previsto).
+2. Los residuales de las tres fases **suman cero**: el balance no cambia la energía comprada.
+3. **Condición final:** sin ella, el LP vacía las baterías al final de las 12 h, como gastarse el sueldo el día 30 porque el presupuesto termina ese día.
+
+---
+
+## El PI y el anti-windup, en simple
+
+**Qué hace el PI.** Es el "cerebro" del lazo rápido de cada fase:
+- La **parte P** es la reacción inmediata: "estoy 1 kW fuera, empujo".
+- La **parte I** es la persistencia: "sigo estando fuera, empujo un poco más", hasta que el error desaparece.
+
+Solo con P siempre queda un poco sin corregir; la I elimina ese resto.
+
+**Por qué tiene límites.** El terciario solo reservó la banda b ± R. Salir de ella sería usar batería no apartada.
+
+**Qué es el windup.** Cuando la salida está en el límite, el error no baja, pero la parte I lo sigue acumulando. Es como una **deuda que crece mientras no puedes pagar**: cuando la perturbación pasa, el PI primero tiene que "pagar" todo lo acumulado y sigue empujando aunque ya no haga falta. En el ejemplo del documento son 60 s empujando en la dirección equivocada.
+
+**Qué es el anti-windup.** Es dejar de acumular mientras la salida está en el límite, o descontar lo que no se pudo aplicar. Así, cuando el margen vuelve, el lazo responde de inmediato. Como la banda cambia cada 15 min, también se mueve el integrador junto con ella para que no haya saltos.
+
+---
+
+## Cómo decírselo al profesor
+
+> "El lazo rápido reparte su corrección entre los IC de cada fase con porcentajes fijos. Eso es una política afín de reserva, la misma estructura que la reserva secundaria clásica. Como el terciario conoce esos porcentajes, puede apartar en cada Micro-red la **energía** que el lazo va a gastar en lo previsible y el **margen** para el error del pronóstico. El margen sale de la estadística del error al 99 %, y en energía crece con el horizonte porque el error se acumula. La salida del PI se limita a la banda que el terciario reservó, con anti-windup para que se recupere apenas vuelve el margen. Todo sigue siendo un LP."
+
+---
+
+## Para comprobar que lo entendiste (sin mirar)
+
+1. ¿Por qué no basta con un margen de potencia grande para cubrir el desbalance de la tarde?
+2. Si el terciario planifica un reparto y el lazo ejecuta otro, ¿qué se rompe?
+3. ¿Por qué el margen de energía a las 4 h es mayor que el de 15 min?
+4. ¿Por qué el PI no puede limitarse a ±1,37 kW en el ejemplo?
+5. ¿Qué pasa con un PI sin anti-windup cuando se agota el margen y luego vuelve?
+
+**Respuestas:**
+1. El margen de potencia está en kW y no dice cuántos kWh se gastan; el desbalance dura horas.
+2. Las baterías gastan energía que el terciario no les apartó.
+3. El error se acumula, sobre todo si es persistente.
+4. Solo lo previsible ya pide 1,5 kW: quedaría saturado.
+5. Se queda pegado al límite mientras "paga" lo acumulado, empujando en la dirección equivocada.

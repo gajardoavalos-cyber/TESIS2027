@@ -1,0 +1,790 @@
+# Formulación del terciario y del lazo rápido: matemática explicada
+
+Documento de estudio y de respaldo para la reunión del lunes 23-nov-2026 con el Prof. Enrique Espina. Responde al acuerdo 3 del acta del 16-nov: "trabajar el álgebra del margen de error y dejar las ecuaciones acabadas".
+
+Combina tres cosas:
+1. **La derivación matemática**, paso a paso y con los supuestos explícitos.
+2. **La explicación en simple** de cada paso (recuadros "En simple"), para poder contarla.
+3. **Un glosario completo y una tabla de decisiones**: cada variable definida, con su unidad, de dónde sale y quién la calcula, y cada decisión tomada con su alternativa, para confirmarla con el profesor.
+
+Acompaña a `presentaciones/laminas_reunion_23nov.tex` (8 láminas) y a `pautas/guia_reunion_23nov.md`.
+
+**Estado:** todo lo que no esté marcado como "validado por el profesor" es una **propuesta**. Nada de esto está simulado todavía.
+
+---
+
+## Índice
+
+1. El sistema, en una figura
+2. Glosario: cada símbolo definido
+3. Las tres ideas que ordenan todo
+4. Qué ve el lazo rápido: derivación de $e_\phi$
+5. El lazo rápido como política afín de reserva
+6. Reparto en la fase: factores de participación $\alpha_k$
+7. Cuánto margen guardar: modelo del error
+8. Potencia: restricción (b)
+9. Energía en toda la trayectoria: restricción (c)
+10. Compra, residual y condición final
+11. Cómo calcula cada Micro-red su envolvente
+12. El LP completo y el horizonte rodante
+13. El controlador PI del lazo rápido y el anti-windup
+14. Ejemplo numérico completo
+15. Decisiones tomadas y a validar con el profesor
+16. Límites y supuestos (verdad cruda)
+17. Ejercicios con solución
+18. Referencias
+
+---
+
+## 1. El sistema, en una figura
+
+```
+              cabecera (S/E): se mide P_h,a  P_h,b  P_h,c  → lazo rápido (uno por fase)
+fase a ──┬───────────────┬───────────────┬──────────── clientes monofásicos (L_a)
+         │               │               │
+       IC_1            IC_2            IC_3          ← un IC monofásico por Micro-red
+         │               │               │
+     [MR 1 DC]       [MR 2 DC]       [MR 3 DC]       ← cada una con su bus DC, su secundario
+     FV·BESS·EV      FV·BESS·EV      FV·BESS·EV         y su envolvente
+neutro ──┴───────────────┴───────────────┴────────────
+(lo mismo en las fases b y c, con N_b y N_c Micro-redes)
+```
+
+**Validado por el profesor** (correo del 2-nov, puntos 1 a 8, respondidos "Sí"):
+- alimentador BT trifásico de 4 hilos, ya desbalanceado por clientes monofásicos sin gestión;
+- cada Micro-red se conecta a **una sola fase** mediante **su propio IC monofásico**, con $N_a$, $N_b$ y $N_c$ Micro-redes que pueden ser distintas;
+- las Micro-redes **no comparten bus DC**: solo intercambian energía a través del alimentador;
+- cada Micro-red tiene **su propio secundario**, que cuida los límites de su BESS y su EV;
+- el terciario se actualiza cada 15 min con pronósticos;
+- el IC es grid-following (reunión del 9-nov), con $Q_{\mathrm{ref}}=0$.
+
+**Correo del 10-nov:** el terciario se encarga de la energía y el lazo rápido del balance; el lazo rápido actúa solo sobre los IC, es uno por fase e iguala las potencias por fase.
+
+---
+
+## 2. Glosario: cada símbolo definido
+
+Tipo de cada magnitud: **M** medida; **P** pronosticada; **D** parámetro de diseño (lo fija quien diseña); **V** variable de decisión del LP; **E** expresión calculada a partir de otras; **A** aleatoria (modelo).
+
+Convenciones de signo:
+- $P_{\mathrm{IC},k}>0$: el IC entrega a la red (DC→AC).
+- $P_{h,\phi}>0$: la fase importa desde la S/E.
+- $P_{B}>0$: la batería descarga.
+
+### 2.1 Índices y tiempo
+
+| Símbolo | Qué es | Unidad | Tipo | Valor o de dónde sale |
+|---|---|---|---|---|
+| $\phi,\psi$ | fase | – | – | $\lbrace a,b,c\rbrace$ |
+| $\mathcal N_\phi$ | conjunto de Micro-redes de la fase $\phi$; $N_\phi$ es su número | – | dato | topología |
+| $k$ | índice de Micro-red (y de su IC) | – | – | – |
+| $t,s$ | tramo de 15 min **dentro del horizonte**; $t=0$ es el tramo en curso | – | – | $0,\dots,T-1$ |
+| $\Delta t$ | duración del tramo | h | D | 0,25 h (15 min) |
+| $H$, $T$ | horizonte del terciario y su número de tramos | h, – | D | $H=12$ h, $T=H/\Delta t=48$ |
+| $n$ | número de tramos acumulados desde ahora ($n=t+1$) | – | E | – |
+| $h$ | hora del día (para estadísticas por hora) | h | – | 0 a 23 |
+| $T_s$ | período de muestreo del lazo rápido | s | D | ≈ 1 s |
+
+### 2.2 Red y mediciones
+
+| Símbolo | Qué es | Unidad | Tipo | De dónde sale |
+|---|---|---|---|---|
+| $P_{h,\phi}$ | potencia activa de la fase $\phi$ en la cabecera | kW | M | medidor en la cabecera |
+| $\bar P_h$ | promedio de las tres fases, $\tfrac13\sum_\psi P_{h,\psi}$ | kW | E | – |
+| $P_{\mathrm{IC},k}$ | potencia activa del IC$_k$ | kW | M | el IC la informa |
+| $S_\phi$ | inyección total de los IC de la fase, $\sum_{k\in\mathcal N_\phi}P_{\mathrm{IC},k}$ | kW | E | – |
+| $\bar S$ | promedio de las $S_\phi$ | kW | E | – |
+| $L_\phi$ | demanda **no gestionada** de la fase (clientes monofásicos) | kW | E | $L_\phi=P_{h,\phi}+S_\phi$ |
+| $D_\phi$ | cuánto se aparta $L_\phi$ del promedio, $L_\phi-\bar L$ | kW | E | – |
+| $e_\phi$ | lo que mide el lazo: $P_{h,\phi}-\bar P_h$ | kW | M/E | sección 4 |
+| $\hat P_{L,\mathrm{tot}}$ | pronóstico de la demanda no gestionada total, $\sum_\phi\hat L_\phi$ | kW | P | mismo método que $\hat D_\phi$ |
+
+### 2.3 Pronóstico y error
+
+| Símbolo | Qué es | Unidad | Tipo | De dónde sale |
+|---|---|---|---|---|
+| $\hat D_\phi$ | pronóstico de $D_\phi$ | kW | P | naive estacional (sección 7.1) |
+| $\xi_\phi$ | error del pronóstico, $D_\phi-\hat D_\phi$ | kW | A | – |
+| $\sigma_\phi(h)$ | desviación estándar de $\xi_\phi$ a la hora $h$ | kW | D (de la historia) | sección 7.2 |
+| $a_\phi$ | autocorrelación de $\xi_\phi$ entre tramos consecutivos (cuánto persiste) | – | D (de la historia) | sección 7.2 |
+| $\varepsilon$ | riesgo aceptado: probabilidad de que el margen no alcance | – | D | propuesta: 1 % |
+| $q_{1-\varepsilon}(\xi)$ | cuantil: valor que $\xi$ supera solo una fracción $\varepsilon$ del tiempo | kW | E | sección 7.3 |
+| $z$ | multiplicador gaussiano, $\Phi^{-1}(1-\varepsilon)$ | – | D | 2,33 con $\varepsilon=1\,\%$ |
+| $m$ | margen por lo que el promedio de 15 min no ve | kW | D (de la historia) | sección 7.4 |
+| $\sigma_{E,\phi}(n)$ | desviación estándar del **error acumulado en energía** tras $n$ tramos | kWh | E | sección 9 |
+| $f(n)$ | factor de acumulación del error AR(1) | – | E | sección 9 |
+| $\bar\varepsilon_k$ | error propio de la MR $k$ (su FV y su carga) | kWh | A | lo absorbe su envolvente (sección 11) |
+
+### 2.4 Envolvente y energía de cada Micro-red (las calcula su secundario)
+
+| Símbolo | Qué es | Unidad | Tipo | De dónde sale |
+|---|---|---|---|---|
+| $E_k$ | energía útil de almacenamiento (BESS y EV conectado) | kWh | M/E | sección 11 |
+| $\mathrm{SoC}_k$ | estado de carga | – | M | BMS |
+| $P^{\min}_k(t)$, $P^{\max}_k(t)$ | potencia mínima y máxima que puede tener su IC en el tramo $t$ | kW | E | sección 11 |
+| $W^{\min}_k(t)$, $W^{\max}_k(t)$ | energía acumulada mínima y máxima que su IC puede entregar hasta el final del tramo $t$ sin salir de la banda de SoC | kWh | E | sección 11 |
+| $W^{\mathrm{fin}}_k$ | energía máxima que puede entregar en todo el horizonte para terminar con el SoC objetivo | kWh | E | sección 10.3 |
+| $\mathcal E_k$ | la envolvente completa, $\lbrace P^{\min}_k,P^{\max}_k,W^{\min}_k,W^{\max}_k\rbrace$ | – | E | – |
+
+### 2.5 Terciario
+
+| Símbolo | Qué es | Unidad | Tipo |
+|---|---|---|---|
+| $c(t)$ | tarifa de compra | \$/kWh | dato |
+| $g(t)$ | compra a la S/E (solo la parte positiva) | kW | V |
+| $P^{\ast}_k(t)$ | plan de potencia del IC$_k$ | kW | V |
+| $\rho_\phi(t)$ | residual de desbalance previsto que se acepta no corregir | kW | V |
+| $\bar\rho$ | máximo residual aceptado | kW | D |
+| $\hat e_\phi$ | parte previsible de lo que verá el lazo | kW | E |
+| $b_\phi$ | parte previsible que el lazo **sí** corrige, $\hat e_\phi-\rho_\phi$ | kW | E |
+| $\alpha_k$ | factor de participación de la MR $k$ en su fase | – | D |
+| $\hat y_k$ | energía comprometida, como potencia media, $\alpha_kb_\phi$ | kW | E |
+| $\tilde P_k$ | potencia media esperada del IC$_k$, $P^{\ast}_k+\hat y_k$ | kW | E |
+| $R^{\varepsilon\uparrow}_\phi$, $R^{\varepsilon\downarrow}_\phi$ | margen de potencia de la fase para el error, hacia arriba y hacia abajo | kW | D (sección 7) |
+| $r^{\uparrow}_k$, $r^{\downarrow}_k$ | margen de potencia de la MR $k$, $\alpha_kR^{\varepsilon}_\phi$ | kW | E |
+| $Z^{\uparrow}_\phi(t)$, $Z^{\downarrow}_\phi(t)$ | margen de energía de la fase hasta el tramo $t$ | kWh | D (sección 9) |
+| $\tau$ | (formulación anterior) duración supuesta de la reserva; ahora $\tau=\Delta t$ | h | – |
+
+### 2.6 Lazo rápido
+
+| Símbolo | Qué es | Unidad | Tipo |
+|---|---|---|---|
+| $\Delta P_\phi$ | corrección de la fase que calcula el PI | kW | salida del PI |
+| $\Delta P_k$ | parte que le toca al IC$_k$, $\alpha_k\Delta P_\phi$ | kW | E |
+| $P_{\mathrm{ref},k}$ | referencia del IC$_k$, $P^{\ast}_k+\Delta P_k$ | kW | E |
+| $u_\phi$ | uso del margen, $(\Delta P_\phi-b_\phi)/R^{\varepsilon}_\phi$; vale 0 en lo nominal y 1 si el margen se agota | – | E (indicador) |
+| $K_p$, $K_i$ | ganancias proporcional e integral del PI | –, 1/s | D |
+| $K_{aw}$ | ganancia del anti-windup | – | D |
+| $x$ | estado del integrador | kW | interno |
+| $T_{\mathrm{IC}}$ | constante de tiempo con que el IC sigue su referencia | s | D (del IC) |
+
+---
+
+## 3. Las tres ideas que ordenan todo
+
+> **En simple.** Piensa en el presupuesto de una casa. El **arriendo** se sabe que llega todos los meses, así que se aparta de antemano. Una **gotera** no se sabe cuándo llega; para eso se tiene un fondo de emergencia. Pagar el arriendo con el fondo de emergencia es un error: se agota en dos semanas.
+
+**Idea 1: hay dos tipos de desbalance.**
+- **Lo previsible**, $\hat e_\phi$: los clientes monofásicos de siempre, todas las tardes, durante horas. Es el "arriendo": se aparta como **energía** en la trayectoria de SoC.
+- **El error**, $\xi_\phi$: lo que el pronóstico no ve. Es la "gotera": se aparta como **margen**, de potencia y de energía.
+
+La formulación anterior pagaba el arriendo con el fondo de emergencia: cubría lo previsible solo con margen de potencia de 15 min. Por eso la BESS se agotaba a las 20:40.
+
+**Idea 2: el lazo rápido es "plan más reacción proporcional".**
+- Mide la cabecera y reparte su corrección entre los IC de la fase **siempre en las mismas proporciones** $\alpha_k$.
+- Esa estructura tiene nombre: **política afín de reserva**.
+- Como los porcentajes son fijos, **el terciario puede predecir cuánto gastará cada Micro-red**.
+
+**Idea 3: el terciario guarda energía y margen pensando en cómo va a actuar el lazo.**
+- El reparto planificado es el que ejecuta el lazo (los mismos $\alpha_k$).
+- El margen se dimensiona con la estadística del error.
+- El margen de energía crece con el horizonte, porque el error se acumula.
+- La banda del PI se centra en lo previsible.
+
+---
+
+## 4. Qué ve el lazo rápido: derivación de $e_\phi$
+
+**Paso 1.** La fase $\phi$ tiene $N_\phi$ IC. La potencia que importa desde la S/E es lo que consumen los clientes menos lo que inyectan **todos** sus IC:
+
+```math
+P_{h,\phi}=L_\phi-S_\phi,\qquad S_\phi=\sum_{k\in\mathcal N_\phi}P_{\mathrm{IC},k}
+```
+
+**Paso 2.** Promediando las tres fases, $\bar P_h=\bar L-\bar S$. Restando:
+
+```math
+e_\phi=P_{h,\phi}-\bar P_h=\underbrace{(L_\phi-\bar L)}_{D_\phi}-(S_\phi-\bar S)
+```
+
+**Paso 3.** Las desviaciones respecto de un promedio suman cero:
+
+```math
+\sum_\phi e_\phi=0
+```
+
+**Paso 4.** Si los IC siguen el plan y $D_\phi=\hat D_\phi+\xi_\phi$:
+
+```math
+e_\phi=\underbrace{\hat D_\phi-(S^{\ast}_\phi-\bar S^{\ast})}_{\hat e_\phi\ \text{previsible}}+\underbrace{\xi_\phi}_{\text{error}},\qquad \sum_\phi\xi_\phi=0
+```
+
+**Paso 5.** $L_\phi$ no se mide directamente, pero $L_\phi=P_{h,\phi}+S_\phi$: la cabecera mide $P_{h,\phi}$ y los IC informan su potencia.
+
+> **En simple.** El lazo mira cuánto se aparta cada fase del promedio. Eso depende de dos cosas: los clientes (que el terciario pronostica) y los IC (que el terciario planifica). Lo único que el terciario no conoce de antemano es el error del pronóstico, $\xi_\phi$.
+
+---
+
+## 5. El lazo rápido como política afín de reserva
+
+**Definición** (Warrington et al. [1]). Una política afín asigna a cada participante $i$ un programa nominal más una corrección lineal en los errores que se van conociendo:
+
+```math
+u_i(t)=e_i(t)+\sum_{s\le t}D_i(t,s)\,\delta(s)
+```
+
+La matriz $D_i$ es triangular inferior: en $t$ solo se conocen los errores hasta $t$. **Si $D_i$ es diagonal, es la reserva secundaria clásica**, y la entrada diagonal es el **factor de participación** [1, secc. 4.2]. Bienstock et al. [2] usan la misma estructura: cada generador responde $\alpha_i$ veces la desviación total, con $\sum_i\alpha_i=1$.
+
+**Nuestro lazo.** El PI de la fase lleva su error a cero en segundos, mucho menos que 15 min (sección 13), así que en promedio $\Delta P_\phi\approx e_\phi-\rho_\phi$. Repartiendo con proporciones fijas:
+
+```math
+P_{\mathrm{IC},k}(t)=P^{\ast}_k(t)+\alpha_k\,\Delta P_\phi(t),\qquad \alpha_k\ge0,\quad \sum_{k\in\mathcal N_\phi}\alpha_k=1
+```
+
+Es una política afín diagonal: nominal $P^{\ast}_k$, participación $\alpha_k$, error $e_\phi$.
+
+**Consecuencia.** Reemplazando $\Delta P_\phi\approx b_\phi+\xi_\phi$, con $b_\phi=\hat e_\phi-\rho_\phi$:
+
+```math
+P_{\mathrm{IC},k}=P^{\ast}_k+\underbrace{\alpha_kb_\phi}_{\hat y_k:\ \text{energía}}+\underbrace{\alpha_k\xi_\phi}_{\text{gasta margen}}
+```
+
+> **En simple.** Un equipo que divide el trabajo por porcentajes fijos: MR1 hace el 40 %, MR2 el 40 % y MR3 el 20 %. Si sabes cuánto trabajo viene y cuánto dura, sabes cuánto gastará cada uno. Eso es lo que permite dejar las ecuaciones "acabadas".
+
+---
+
+## 6. Reparto en la fase: factores de participación $\alpha_k$
+
+### 6.1 Por qué el reparto planificado debe ser el del lazo
+
+En la formulación anterior, el terciario elegía $\hat y_k$ y $r_k$ por separado, y el lazo repartía $\Delta P_k=(r_k/R_\phi)\Delta P_\phi$. Para que ambos coincidan:
+
+```math
+\frac{\hat y_k}{\sum_j\hat y_j}=\frac{r_k}{\sum_j r_j}\iff \hat y_k\,R_\phi=r_k\,b_\phi
+```
+
+Esa igualdad es un **producto de variables (bilineal)**: el problema deja de ser LP.
+
+**Ejemplo.** Fase $a$, evento de 1,5 kW.
+
+| | MR1 | MR2 | MR3 |
+|---|---|---|---|
+| Reparto libre: plan del terciario | 1,5 kW | 0 | 0 |
+| Lo que hace el lazo (proporcional a $r$ = 0,55/0,55/0,27) | 0,6 kW | 0,6 kW | 0,3 kW |
+
+MR2 y MR3 gastan energía que nadie les apartó.
+
+### 6.2 La solución: $\alpha_k$ es un dato
+
+```math
+\hat y_k=\alpha_kb_\phi,\qquad r^{\uparrow}_k=\alpha_kR^{\varepsilon\uparrow}_\phi,\qquad r^{\downarrow}_k=\alpha_kR^{\varepsilon\downarrow}_\phi
+```
+
+Todo es lineal, y $\sum_kr_k=R^{\varepsilon}_\phi$: la restricción (d) se cumple sola.
+
+### 6.3 Qué valor: el mismo $\Delta$SoC para todas
+
+Si la fase gasta $\Delta E_\phi$, la MR $k$ gasta $\alpha_k\Delta E_\phi$, y su SoC cambia en $\alpha_k\Delta E_\phi/E_k$. Para que sea igual en todas:
+
+```math
+\alpha_k=\frac{E_k}{\sum_{j\in\mathcal N_\phi}E_j}\quad\Rightarrow\quad\Delta\mathrm{SoC}_k=\frac{\Delta E_\phi}{\sum_jE_j}\ \ \forall k
+```
+
+Con $E=10/10/5$ kWh: $\alpha=0{,}4/0{,}4/0{,}2$. En un evento de 6 kWh: 2,4/2,4/1,2 kWh, es decir, **24 % de SoC en las tres**.
+
+**Cuándo se recalcula:** en cada resolución del terciario (cada 15 min), con los $E_k$ informados. Dentro del tramo queda fijo.
+
+> **En simple.** El terciario planifica con los mismos porcentajes que usa el lazo, y los elige para que ninguna batería se vacíe antes que las otras.
+
+---
+
+## 7. Cuánto margen guardar: modelo del error
+
+### 7.1 Pronóstico simple
+
+Naive estacional [8]: el mismo tramo de 15 min de los últimos $n$ días equivalentes (96 tramos por día):
+
+```math
+\hat D_\phi(t)=\frac1n\sum_{d=1}^{n}D_\phi(t-96d)
+```
+
+Propuesta: $n=7$, separando días hábiles y fines de semana.
+
+### 7.2 Estadística del error
+
+Con la historia del error $\xi_\phi(t)=D_\phi(t)-\hat D_\phi(t)$, por hora del día $h$ ($\mathcal T_h$ son los tramos de la historia en esa hora):
+
+```math
+\mu_\phi(h)=\frac{1}{|\mathcal T_h|}\sum_{t\in\mathcal T_h}\xi_\phi(t),\qquad
+\sigma^2_\phi(h)=\frac{1}{|\mathcal T_h|-1}\sum_{t\in\mathcal T_h}\big(\xi_\phi(t)-\mu_\phi(h)\big)^2
+```
+
+```math
+a_\phi=\frac{\sum_t(\xi_\phi(t)-\mu)(\xi_\phi(t-1)-\mu)}{\sum_t(\xi_\phi(t)-\mu)^2}
+```
+
+Si $\mu_\phi(h)\neq0$, el pronóstico está sesgado y se corrige sumándole $\mu_\phi(h)$.
+
+### 7.3 Margen de potencia como restricción probabilística
+
+Se pide que el margen alcance con probabilidad $1-\varepsilon$:
+
+```math
+\Pr\big[\xi_\phi\le R^{\varepsilon\uparrow}_\phi-m\big]\ge1-\varepsilon\iff R^{\varepsilon\uparrow}_\phi=q_{1-\varepsilon}(\xi_\phi)+m
+```
+
+y hacia abajo, $R^{\varepsilon\downarrow}_\phi=-q_\varepsilon(\xi_\phi)+m$. Hay tres maneras de obtener el cuantil:
+
+| Método | Fórmula | $\varepsilon=1\,\%$ | Cuándo sirve |
+|---|---|---|---|
+| Gaussiano | $\mu+z\sigma$, $z=\Phi^{-1}(1-\varepsilon)$ | $2{,}33\,\sigma$ | si el error es aproximadamente normal [2], [3] |
+| Cantelli (sin supuesto) | $\mu+\sigma\sqrt{(1-\varepsilon)/\varepsilon}$ | $9{,}95\,\sigma$ | válido siempre, muy conservador [4] |
+| **Cuantil empírico (propuesta)** | se lee de la historia ordenada | – | no supone forma y capta la asimetría |
+
+**Derivación de Cantelli.** La desigualdad dice $\Pr[\xi-\mu\ge\lambda]\le\sigma^2/(\sigma^2+\lambda^2)$. Imponiendo que el lado derecho sea $\le\varepsilon$: $\sigma^2\le\varepsilon\sigma^2+\varepsilon\lambda^2$, y despejando, $\lambda\ge\sigma\sqrt{(1-\varepsilon)/\varepsilon}$.
+
+**Precedente normativo.** El SOGL europeo (Reg. UE 2017/1485, art. 157) dimensiona la reserva FRR para cubrir el **99 % de los desbalances históricos**, en cada dirección [7].
+
+### 7.4 Qué es $m$
+
+El terciario trabaja con promedios de 15 min; el lazo actúa cada segundo. $m$ cubre la variación dentro del tramo, el error de medida y el error de seguimiento del PI:
+
+```math
+m=q_{1-\varepsilon}\Big(\big|P^{1\,\mathrm{min}}_{h,\phi}-\bar P^{15\,\mathrm{min}}_{h,\phi}\big|\Big)
+```
+
+> **En simple.** ¿De qué tamaño debe ser el fondo de emergencia? Se mira el historial de "goteras" (errores del pronóstico) y se guarda lo suficiente para cubrir 99 de cada 100. Así se dimensiona la reserva en Europa.
+
+---
+
+## 8. Potencia: restricción (b)
+
+El PI se mueve en $\Delta P_\phi\in[b_\phi-R^{\varepsilon\downarrow}_\phi,\ b_\phi+R^{\varepsilon\uparrow}_\phi]$ (sección 13). El IC$_k$ entrega $P^{\ast}_k+\alpha_k\Delta P_\phi$, con extremos $\tilde P_k+r^{\uparrow}_k$ y $\tilde P_k-r^{\downarrow}_k$. Ambos deben caber en su envolvente de potencia:
+
+```math
+P^{\min}_k(t)+\alpha_kR^{\varepsilon\downarrow}_\phi(t)\le\tilde P_k(t)\le P^{\max}_k(t)-\alpha_kR^{\varepsilon\uparrow}_\phi(t)
+```
+
+> **En simple.** El plan, más lo previsible, más el margen para el error tienen que caber en lo que el IC y la batería pueden dar.
+
+---
+
+## 9. Energía en toda la trayectoria: restricción (c)
+
+### 9.1 Energía entregada
+
+```math
+W_k(t)=\sum_{s=0}^{t}P_{\mathrm{IC},k}(s)\Delta t=\sum_{s=0}^{t}\tilde P_k(s)\Delta t+\alpha_k\sum_{s=0}^{t}\xi_\phi(s)\Delta t
+```
+
+### 9.2 El error acumulado
+
+Modelo AR(1): $\xi_i=a\,\xi_{i-1}+\eta_i$, de modo que $\mathrm{Cov}(\xi_i,\xi_j)=\sigma^2a^{|i-j|}$. La varianza de la suma de $n$ tramos es la suma de todas las covarianzas. Hay $n$ pares con distancia 0 y $2(n-d)$ pares con distancia $d$:
+
+```math
+\mathrm{Var}\Big(\sum_{i=1}^n\xi_i\Big)=\sigma^2\Big[n+2\sum_{d=1}^{n-1}(n-d)a^d\Big]=\sigma^2f(n)
+```
+
+```math
+f(n)=\frac{n(1+a)}{1-a}-\frac{2a(1-a^n)}{(1-a)^2},\qquad \sigma_{E,\phi}(n)=\sigma_\phi\,\Delta t\sqrt{f(n)}
+```
+
+Comprobaciones:
+- $f(1)=1$;
+- $f(2)=2(1+a)$;
+- $a=0$: $f=n$;
+- $a\to1$: $f\to n^2$.
+
+Si $\sigma$ varía por hora: $\sigma^2_{E}(n)=\Delta t^2\sum_i\sum_j\sigma(i)\sigma(j)a^{|i-j|}$.
+
+### 9.3 Restricción (c) acabada
+
+```math
+Z_\phi(t)=\big(z\,\sigma_\phi\sqrt{f(t+1)}+m\big)\Delta t
+```
+
+```math
+W^{\min}_k(t)+\alpha_kZ^{\downarrow}_\phi(t)\le\sum_{s=0}^{t}\tilde P_k(s)\Delta t\le W^{\max}_k(t)-\alpha_kZ^{\uparrow}_\phi(t)
+```
+
+**El antiguo $\tau$.** En el primer tramo, $f(1)=1$ y $Z_\phi(0)=R^{\varepsilon}_\phi\Delta t$, que es "margen de potencia por $\tau$" con $\tau=\Delta t$. Cada 15 min se mide el SoC y se re-planifica, así que basta asegurar el tramo en curso. Los tramos futuros llevan un margen creciente, para que el plan siga siendo alcanzable.
+
+**Variantes a comparar en simulación:**
+- **(c-i)** $Z$ solo en el primer tramo (optimista);
+- **(c-ii)** $Z(t)$ creciente (conservadora).
+
+> **En simple.** Una caminata con la brújula un poco descalibrada: en 15 minutos te desvías poco; en 4 horas puedes desviarte mucho, sobre todo si la brújula siempre se equivoca hacia el mismo lado. Si hoy la demanda viene más alta de lo pronosticado, lo más probable es que siga así toda la tarde, y la batería gastada no vuelve.
+
+---
+
+## 10. Compra, residual y condición final
+
+### 10.1 La compra con lo que realmente harán los IC
+
+```math
+g(t)\ge\hat P_{L,\mathrm{tot}}(t)-\sum_k\tilde P_k(t),\qquad g(t)\ge0
+```
+
+Se usa $\tilde P_k$ y no solo $P^{\ast}_k$, porque lo previsible también es energía que entregan los IC.
+
+### 10.2 El residual suma cero entre fases
+
+$\sum_k\hat y_k=\sum_\phi b_\phi=-\sum_\phi\rho_\phi$, porque $\sum_\phi\hat e_\phi=0$. Además, la parte común de $\rho$ no cambia el balance (lo que queda en cada fase es $\rho_\phi-\tfrac13\sum_\psi\rho_\psi$), solo la compra. Por eso:
+
+```math
+|\rho_\phi|\le\bar\rho,\qquad\sum_\phi\rho_\phi=0
+```
+
+Con esto, el balance previsto no cambia la compra total.
+
+### 10.3 Condición final
+
+Sin ella, el LP no valora la energía que queda después de las 12 h y tiende a vaciar las baterías al final:
+
+```math
+\sum_{s=0}^{T-1}\tilde P_k(s)\Delta t\le W^{\mathrm{fin}}_k
+```
+
+$W^{\mathrm{fin}}_k$ se define en la sección 11.
+
+> **En simple.** No gastarse todo el sueldo el día 30 solo porque el presupuesto termina ese día.
+
+---
+
+## 11. Cómo calcula cada Micro-red su envolvente
+
+Esta sección **define lo que antes no estaba definido**. Es una propuesta, que debe calcular el secundario de cada MR.
+
+**Balance de energía de la MR $k$** (sin pérdidas, para empezar). Con $P_{\mathrm{net},k}=P_{\mathrm{PV},k}-P_{\mathrm{carga},k}-P_{\mathrm{EV},k}$ el excedente local:
+
+```math
+E_{B,k}(t)=E_{B,k}(0)+\sum_{s\le t}\big(\hat P_{\mathrm{net},k}(s)-P_{\mathrm{IC},k}(s)\big)\Delta t
+```
+
+**Banda de SoC:** $E^{\min}_{B,k}\le E_{B,k}(t)\le E^{\max}_{B,k}$, con $E^{\min/\max}_{B,k}=\mathrm{SoC}^{\min/\max}E^{\mathrm{nom}}_k$. Despejando la energía acumulada del IC:
+
+```math
+W^{\max}_k(t)=E_{B,k}(0)-E^{\min}_{B,k}+\sum_{s\le t}\hat P_{\mathrm{net},k}(s)\Delta t-z\,\sigma_{E,k}(t)
+```
+
+```math
+W^{\min}_k(t)=E_{B,k}(0)-E^{\max}_{B,k}+\sum_{s\le t}\hat P_{\mathrm{net},k}(s)\Delta t+z\,\sigma_{E,k}(t)
+```
+
+El último término es el ajuste por el **error propio** de la MR ($\bar\varepsilon_k$), con $\sigma_{E,k}$ calculado como en la sección 9 a partir del error de su pronóstico de FV y de carga.
+
+**Envolvente de potencia:**
+
+```math
+P^{\max}_k(t)=\min\big(S^{\mathrm{nom}}_{\mathrm{IC},k},\ P^{\mathrm{desc}}_{B,k}+\hat P_{\mathrm{net},k}(t)\big),\qquad
+P^{\min}_k(t)=\max\big(-S^{\mathrm{nom}}_{\mathrm{IC},k},\ -P^{\mathrm{carga}}_{B,k}+\hat P_{\mathrm{net},k}(t)\big)
+```
+
+donde $S^{\mathrm{nom}}_{\mathrm{IC},k}$ es la potencia nominal del IC (con $Q=0$) y $P^{\mathrm{desc}}_{B,k}$ y $P^{\mathrm{carga}}_{B,k}$ son las potencias máximas de descarga y carga de la BESS.
+
+**Energía útil:** $E_k=E^{\max}_{B,k}-E^{\min}_{B,k}$.
+
+**Condición final:** con un SoC objetivo $\mathrm{SoC}^{\mathrm{obj}}_k$ (por ejemplo, el valor medio de la banda):
+
+```math
+W^{\mathrm{fin}}_k=E_{B,k}(0)-\mathrm{SoC}^{\mathrm{obj}}_kE^{\mathrm{nom}}_k+\sum_{s<T}\hat P_{\mathrm{net},k}(s)\Delta t
+```
+
+**El EV:** mientras está conectado, su batería se suma a $E_k$ con su propia banda (que debe dejar la carga pedida a la hora de salida). Mientras no está, no aporta. Esto hace que $E_k$ y la envolvente cambien en el día. **Decisión a validar.**
+
+**Pérdidas:** se incluyen dividiendo o multiplicando por las eficiencias de carga, de descarga y del IC. Quedan dentro de la envolvente; el terciario no necesita conocerlas.
+
+> **En simple.** Cada MR le dice al terciario: "con lo que tengo en la batería, lo que espero que genere mi FV y lo que espero consumir, puedo entregar a lo más tanto y absorber a lo más tanto, ya con mi propio colchón incluido".
+
+---
+
+## 12. El LP completo y el horizonte rodante
+
+```math
+\begin{aligned}
+\min\quad & \sum_{t=0}^{T-1}c(t)\,g(t)\,\Delta t\\
+\text{def.}\quad & S_\phi=\textstyle\sum_{k\in\mathcal N_\phi}P^{\ast}_k,\quad \bar S=\tfrac13\sum_\psi S_\psi,\quad \hat e_\phi=\hat D_\phi-(S_\phi-\bar S)\\
+& b_\phi=\hat e_\phi-\rho_\phi,\quad \hat y_k=\alpha_kb_\phi,\quad \tilde P_k=P^{\ast}_k+\hat y_k\\
+\text{(0)}\quad & g(t)\ge\hat P_{L,\mathrm{tot}}(t)-\textstyle\sum_k\tilde P_k(t),\qquad g(t)\ge0\\
+\text{(a)}\quad & -\bar\rho\le\rho_\phi(t)\le\bar\rho,\qquad\textstyle\sum_\phi\rho_\phi(t)=0\\
+\text{(b)}\quad & P^{\min}_k(t)+\alpha_kR^{\varepsilon\downarrow}_\phi(t)\le\tilde P_k(t)\le P^{\max}_k(t)-\alpha_kR^{\varepsilon\uparrow}_\phi(t)\\
+\text{(c)}\quad & W^{\min}_k(t)+\alpha_kZ^{\downarrow}_\phi(t)\le\textstyle\sum_{s=0}^{t}\tilde P_k(s)\Delta t\le W^{\max}_k(t)-\alpha_kZ^{\uparrow}_\phi(t)\\
+\text{(d)}\quad & \textstyle\sum_{k\in\mathcal N_\phi}r_k=R^{\varepsilon}_\phi\quad\text{(se cumple por construcción)}\\
+\text{(e)}\quad & \textstyle\sum_{s=0}^{T-1}\tilde P_k(s)\Delta t\le W^{\mathrm{fin}}_k
+\end{aligned}
+```
+
+**Por qué es un LP:** todas las expresiones son sumas de variables por constantes, porque $\alpha_k$, $R^{\varepsilon}$, $Z$ y la envolvente son datos.
+
+**Tamaño:** con $N$ MR en total hay $(N+4)T$ variables. Con 9 MR son 624: se resuelve en milisegundos.
+
+**Horizonte rodante, cada 15 min:**
+1. Cada secundario mide su SoC y envía $\mathcal E_k$ y $E_k$.
+2. El terciario actualiza $\hat D_\phi$, $\alpha_k$, $R^{\varepsilon}_\phi$ y $Z_\phi$.
+3. Resuelve el LP.
+4. Aplica **solo el primer tramo**: envía $P^{\ast}_k(0)$ y $\alpha_k$ a cada IC, y $b_\phi(0)$, $\rho_\phi(0)$ y $R^{\varepsilon}_\phi(0)$ al lazo de cada fase.
+5. Repite.
+
+Los tramos futuros no se aplican, pero condicionan la primera decisión [1, secc. 4.3]. Por eso se mantiene $H=12$ h.
+
+**Si no hay solución:** se agrega una holgura sobre (a), muy penalizada en el objetivo. El LP queda factible y la holgura funciona como alarma con hasta 12 h de anticipación.
+
+---
+
+## 13. El controlador PI del lazo rápido y el anti-windup
+
+Esta sección responde: qué hace el PI, por qué se usa, cómo se implementa, qué es el anti-windup y cómo explicarlo.
+
+### 13.1 Qué problema resuelve el lazo
+
+Los clientes monofásicos cambian su consumo a cada segundo, y el terciario solo actúa cada 15 min. Hace falta algo que **mida continuamente** cuánto se aparta cada fase del promedio y **corrija** moviendo los IC. Eso es un control en **lazo cerrado**: medir, comparar con lo deseado, corregir y volver a medir.
+
+- **Lo deseado:** que la fase no se aparte del promedio más allá del residual aceptado, es decir, $e_\phi=\rho_\phi$ (normalmente 0).
+- **Lo medido:** $e_\phi=P_{h,\phi}-\bar P_h$.
+- **Lo que se mueve:** $\Delta P_\phi$, que se reparte entre los IC de la fase.
+
+Signo: si $e_\phi>0$, la fase está más cargada que el promedio. Los IC de esa fase deben inyectar más ($\Delta P_\phi$ sube), y eso reduce $P_{h,\phi}$.
+
+### 13.2 Qué hace cada parte del PI
+
+```math
+\Delta P_\phi(t)=K_p\,\big(e_\phi-\rho_\phi\big)+K_i\int_0^t\big(e_\phi-\rho_\phi\big)\,d\tau
+```
+
+**Parte proporcional ($K_p$): reacciona a lo que está pasando ahora.** Cuanto más se aparta la fase, más fuerte corrige. Es como acelerar más cuanto más lejos estás de la velocidad deseada.
+
+Por sí sola deja un **error permanente**. Si la perturbación es constante, $d$, el lazo ve $e=d-\Delta P$ (sección 13.4). Con solo $\Delta P=K_pe$:
+
+```math
+e=d-K_pe\ \Rightarrow\ e=\frac{d}{1+K_p}\neq0
+```
+
+Siempre queda algo sin corregir. Con $K_p=2$ y $d=1{,}5$ kW quedan 0,5 kW de desbalance.
+
+**Parte integral ($K_i$): corrige lo que falta, de a poco, hasta que no falte nada.** Acumula el error en el tiempo y su salida sigue creciendo mientras haya error. En régimen permanente el integrador está quieto, y eso solo ocurre si su entrada es cero:
+
+```math
+\frac{dx}{dt}=K_i\,(e_\phi-\rho_\phi)=0\ \Rightarrow\ e_\phi=\rho_\phi
+```
+
+**Por eso el PI lleva el desbalance exactamente al valor deseado.**
+
+**Sin parte derivativa (D):** amplificaría el ruido de la medición, y la planta (sección 13.4) es tan simple que no la necesita.
+
+> **En simple.** La parte P es la reacción inmediata: "estoy 1 kW fuera, empujo". La parte I es la persistencia: "sigo estando fuera, empujo un poco más", hasta que el error desaparece. Juntas reaccionan rápido y no dejan error permanente.
+
+### 13.3 Por qué tiene límites (saturación)
+
+El terciario solo apartó margen para que el lazo se mueva entre $b_\phi-R^{\varepsilon\downarrow}_\phi$ y $b_\phi+R^{\varepsilon\uparrow}_\phi$. Más allá, los IC usarían potencia o energía no reservada, y podrían sacar una batería de su banda de SoC. Por eso la salida del PI se **satura**:
+
+```math
+\Delta P_\phi=\mathrm{sat}_{[\,b_\phi-R^{\varepsilon\downarrow}_\phi,\ b_\phi+R^{\varepsilon\uparrow}_\phi\,]}(v),\qquad v=K_p(e_\phi-\rho_\phi)+x
+```
+
+**Por qué la banda es $b_\phi\pm R$ y no $\pm R$:** en lo nominal el PI ya debe entregar lo previsible, $b_\phi$. En el ejemplo, $b=1{,}5$ kW y $R=1{,}37$ kW. Con una banda de $\pm1{,}37$ kW, el PI quedaría pegado al límite toda la tarde solo por lo previsible, sin capacidad para el error. Con $b\pm R$, la banda es $[0{,}13;\ 2{,}87]$ kW: en un día normal queda cerca de 1,5 kW ($u_\phi=0$) y le quedan $\pm1{,}37$ kW para las sorpresas.
+
+### 13.4 La planta que ve el lazo y cómo sintonizarlo
+
+Con $\mathbf d$ el vector de perturbaciones por fase y $\Delta\mathbf P$ el de correcciones:
+
+```math
+\mathbf e=M(\mathbf d-\Delta\mathbf P),\qquad M=I-\tfrac13\mathbf 1\mathbf 1^{\top}
+```
+
+$M$ deja intacto todo lo que suma cero y anula la parte común. Como las correcciones suman cero (lo que una fase entrega, las otras lo absorben), **cada fase ve una planta de ganancia uno**: $e_\phi=d_\phi-\Delta P_\phi$.
+
+El IC sigue su referencia con un retardo de primer orden, $1/(1+sT_{\mathrm{IC}})$, con $T_{\mathrm{IC}}$ del orden de decenas de ms. El lazo abierto es:
+
+```math
+L(s)=\Big(K_p+\frac{K_i}{s}\Big)\frac{1}{1+sT_{\mathrm{IC}}}=\frac{K_i(1+sK_p/K_i)}{s(1+sT_{\mathrm{IC}})}
+```
+
+**Sintonía por cancelación polo-cero:** si $K_p/K_i=T_{\mathrm{IC}}$, queda $L(s)=K_i/s$. El lazo cerrado es de primer orden:
+
+```math
+\frac{\Delta P_\phi}{d_\phi}=\frac{1}{1+s/K_i}
+```
+
+con constante de tiempo $1/K_i$. **Propuesta:** $1/K_i$ entre 5 y 10 s. Es mucho más lento que el IC (no interfiere con su control de corriente), mucho más rápido que 15 min (el terciario lo ve como instantáneo) y lo bastante lento respecto de $T_s=1$ s (unas 5 a 10 muestras por constante de tiempo). **Queda por validar en PLECS** cuando el IC tenga lado AC.
+
+**La parte común no se mueve.** Como $\sum_\phi(e_\phi-\rho_\phi)=0$, la suma de los tres integradores es constante. Si arrancan en $b_\phi$ (que suman cero), la suma queda en cero: el lazo no cambia la compra total mientras ninguna fase se sature.
+
+### 13.5 Qué es el windup (el problema)
+
+Cuando la salida está saturada, la corrección que pide el PI no se aplica completa: el error **no baja a cero**. Pero el integrador no lo sabe y **sigue acumulando** ese error. Su estado $x$ crece muy por encima del límite: se "infla" (*windup*, "enrollarse" o "darse cuerda").
+
+El daño aparece después: cuando la perturbación desaparece o cambia de signo, el integrador tiene que **desacumular** todo lo que se infló antes de que la salida se despegue del límite. Durante ese tiempo los IC siguen entregando el máximo aunque ya no haga falta, la fase se desbalancea **hacia el otro lado** y se gasta batería de más.
+
+**Ejemplo numérico.** Límite superior 2,87 kW; durante 60 s el error se mantiene 0,5 kW por encima de lo que la saturación deja corregir, con $K_i=0{,}15$ s$^{-1}$:
+
+```math
+\Delta x=K_i\cdot e\cdot t=0{,}15\times0{,}5\times60=4{,}5\ \text{kW por encima del límite}
+```
+
+Si después el error se invierte a $-0{,}5$ kW, el integrador tarda $4{,}5/(0{,}15\times0{,}5)=60$ s en volver al límite. **Un minuto con los IC empujando en la dirección equivocada.**
+
+> **En simple.** Es como una cuenta de "lo que debo" que sigue creciendo mientras no puedo pagar. Cuando por fin puedo, primero tengo que saldar toda esa deuda acumulada, aunque ya no haga falta, y mientras tanto sigo actuando como si debiera.
+
+### 13.6 Qué es el anti-windup (la solución)
+
+Anti-windup es **cualquier mecanismo que impide que el integrador se infle mientras la salida está saturada**. Hay dos formas estándar:
+
+**(1) Integración condicional (*clamping*).** Se congela el integrador cuando la salida está en un límite **y** el error empuja más hacia ese límite:
+
+```math
+x[n+1]=\begin{cases}x[n] & \text{si } \big(v[n]>U\ \text{y}\ e[n]>0\big)\ \text{o}\ \big(v[n]<L\ \text{y}\ e[n]<0\big)\\ x[n]+K_iT_s\,e[n] & \text{en otro caso}\end{cases}
+```
+
+**(2) Retrocálculo (*back-calculation*).** Se devuelve al integrador la diferencia entre lo que pidió y lo que se aplicó, para "desinflarlo":
+
+```math
+x[n+1]=x[n]+K_iT_s\,(e_\phi[n]-\rho_\phi)+K_{aw}\big(\Delta P_\phi[n]-v[n]\big)
+```
+
+Si no hay saturación, $\Delta P_\phi=v$ y el término extra es cero. Si hay, el término es negativo cuando $v$ se pasa del límite superior y frena al integrador. En tiempo discreto debe cumplirse $0<K_{aw}\le1$; si es mayor, el integrador oscila. Con $K_{aw}=1$, el integrador se corrige justo lo necesario para que la salida quede en el límite. Como aquí $K_p$ es muy pequeño (ejercicio E7), se propone $K_{aw}=1$.
+
+**Propuesta para la tesis:** retrocálculo, que es el más usado en convertidores y se implementa en PLECS con un bloque de saturación y una realimentación.
+
+**Por qué es especialmente importante aquí:**
+1. La saturación del lazo es justamente el caso "**se agotó el margen**", el evento de riesgo (probabilidad del orden de $\varepsilon$). Cuando el margen vuelve, el lazo tiene que recuperarse de inmediato, no un minuto después.
+2. **La banda cambia cada 15 min** (cambia $b_\phi$). Sin cuidado, ese cambio produce un salto en la salida. La solución (*bumpless*) es desplazar el integrador en lo mismo que cambia $b_\phi$: $x\leftarrow x+(b^{\text{nuevo}}_\phi-b^{\text{viejo}}_\phi)$.
+
+### 13.7 Implementación completa (cada $T_s\approx1$ s, por fase)
+
+```math
+\begin{aligned}
+&\text{1. medir } P_{h,a},P_{h,b},P_{h,c};\quad e_\phi=P_{h,\phi}-\tfrac13\textstyle\sum_\psi P_{h,\psi}\\
+&\text{2. } v=K_p(e_\phi-\rho_\phi)+x\\
+&\text{3. } \Delta P_\phi=\min\big(\max(v,\ b_\phi-R^{\varepsilon\downarrow}_\phi),\ b_\phi+R^{\varepsilon\uparrow}_\phi\big)\\
+&\text{4. } x\leftarrow x+K_iT_s(e_\phi-\rho_\phi)+K_{aw}(\Delta P_\phi-v)\\
+&\text{5. enviar } \Delta P_k=\alpha_k\,\Delta P_\phi\ \text{a cada IC}_k\ \text{de la fase}\\
+&\text{6. (monitoreo) } u_\phi=(\Delta P_\phi-b_\phi)/R^{\varepsilon}_\phi\\
+&\text{Cada 15 min: recibir } b_\phi,\rho_\phi,R^{\varepsilon}_\phi;\ x\leftarrow x+(b^{\text{nuevo}}_\phi-b^{\text{viejo}}_\phi)
+\end{aligned}
+```
+
+**Forma equivalente con prealimentación:** $\Delta P_\phi=b_\phi+\mathrm{sat}_{[-R^{\downarrow},R^{\uparrow}]}\big(\mathrm{PI}(e_\phi-\rho_\phi)\big)$. Lo previsible se envía directo y el PI solo corrige el error, de modo que el integrador trabaja cerca de cero. En el IC, $P_{\mathrm{ref},k}=P^{\ast}_k+\hat y_k+u_\phi r_k$. **Decisión a validar.**
+
+### 13.8 Cómo explicárselo al profesor (versión de 30 segundos)
+
+> "El lazo de cada fase es un PI porque necesito error permanente cero: la parte integral sigue corrigiendo hasta que la fase iguala al promedio. Como la planta, vista en el subespacio de suma cero, tiene ganancia uno y el IC es un retardo de primer orden, con cancelación polo-cero el lazo cerrado es de primer orden con constante $1/K_i$ de 5 a 10 segundos. La salida está saturada a la banda que reservó el terciario, $b_\phi\pm R^{\varepsilon}_\phi$. Cuando se satura, el integrador se inflaría y el lazo tardaría en soltar el límite; el anti-windup por retrocálculo lo evita, y además desplazo el integrador cuando cambia $b_\phi$ cada 15 minutos, para que no haya saltos."
+
+**Preguntas probables:**
+- **"¿Por qué no solo P?"** Deja error permanente $d/(1+K_p)$.
+- **"¿Y si el IC es más lento?"** Se recalcula $K_p=K_iT_{\mathrm{IC}}$; se mantiene $1/K_i\gg T_{\mathrm{IC}}$.
+- **"¿Los tres PI se pelean entre sí?"** No: el error de las tres fases suma cero, y la parte común de los integradores no se mueve.
+
+---
+
+## 14. Ejemplo numérico completo
+
+Supuestos (no son datos medidos):
+- Fase $a$ con 3 MR: $E=10/10/5$ kWh, de modo que $\alpha=0{,}4/0{,}4/0{,}2$.
+- Evento previsto: $b_a=1{,}5$ kW de 18 a 22 h (4 h).
+- Error: $\sigma_a=0{,}5$ kW, $a=0{,}8$; $\varepsilon=1\,\%$ con aproximación gaussiana, $z=2{,}33$; $m=0{,}2$ kW.
+
+**Margen de potencia:** $R^{\varepsilon}_a=2{,}33\cdot0{,}5+0{,}2=1{,}37$ kW; $r_k=0{,}55/0{,}55/0{,}27$ kW.
+
+**Margen de energía de la fase**, con $z\sigma\Delta t=0{,}291$ kWh y $m\Delta t=0{,}05$ kWh:
+
+| Horizonte | $n$ | $\sqrt{f}$ con $a=0$ | $Z$ con $a=0$ | $\sqrt{f}$ con $a=0{,}8$ | $Z$ con $a=0{,}8$ |
+|---|---|---|---|---|---|
+| 15 min | 1 | 1,00 | 0,34 kWh | 1,00 | 0,34 kWh |
+| 1 h | 4 | 2,00 | 0,63 kWh | 3,52 | 1,07 kWh |
+| 2 h | 8 | 2,83 | 0,87 kWh | 6,22 | 1,86 kWh |
+| 4 h | 16 | 4,00 | 1,22 kWh | 10,25 | 3,04 kWh |
+
+**MR1 a las 4 h:** comprometida $0{,}4\cdot1{,}5\cdot4=2{,}4$ kWh, más margen $0{,}4\cdot3{,}04=1{,}21$ kWh, igual a **3,6 kWh de su banda de 10 kWh**. Con $R\tau$ constante se habrían apartado 0,14 kWh.
+
+**Banda del PI:** $[1{,}5-1{,}37;\ 1{,}5+1{,}37]=[0{,}13;\ 2{,}87]$ kW.
+
+---
+
+## 15. Decisiones tomadas y a validar con el profesor
+
+**Ya validadas (no reabrir):**
+
+| # | Decisión | Cuándo |
+|---|---|---|
+| V1 | Alimentador BT 3φ-4h desbalanceado; $N_\phi$ MR por fase, cada una con su IC; sin bus DC común | correo 2-nov |
+| V2 | Secundario por MR, cuida límites de BESS y EV | correo 2-nov |
+| V3 | Terciario cada 15 min con pronósticos; horizonte que puede ser menor a 24 h | correo 2-nov |
+| V4 | IC grid-following | reunión 9-nov |
+| V5 | Terciario = energía; lazo rápido = balance, por fase, solo sobre los IC; envolvente por MR; pronóstico simple | correo 10-nov |
+| V6 | MR DC con primario y secundario | reunión 16-nov |
+
+**Propuestas para validar el 23-nov:**
+
+| # | Decisión | Propuesta | Por qué | Alternativa |
+|---|---|---|---|---|
+| D1 | Estructura del lazo | política afín diagonal: $P^{\ast}_k+\alpha_k\Delta P_\phi$ | el terciario puede predecir lo que gasta cada MR; precedente: reserva secundaria [1] | reparto por $r_k$ libre (rompe el plan o es bilineal) |
+| D2 | Reparto $\alpha_k$ | $E_k/\sum_jE_j$, fijo en cada resolución | mismo $\Delta$SoC; mantiene el LP | optimizar $\alpha_k$ (LP secuencial) |
+| D3 | Pronóstico | naive estacional, $n=7$ días equivalentes | lo simple que pidió el profesor; benchmark estándar [8] | corrección con la última medición |
+| D4 | Riesgo | $\varepsilon=1\,\%$ | precedente SOGL al 99 % [7] | 5 % (menos margen) |
+| D5 | Cálculo del margen | cuantil empírico $+\,m$ | no supone forma; capta asimetría | gaussiano $z\sigma+m$ |
+| D6 | Margen de energía | $Z(t)$ creciente (c-ii), comparando con (c-i) | el error persiste; asegura el plan futuro | solo el primer tramo |
+| D7 | Modelo del error acumulado | AR(1) con $a$ estimado | simple, una sola cifra | autocorrelaciones medidas (doble suma) |
+| D8 | $\tau$ | $\tau=\Delta t=15$ min | es el período de re-planificación | $\tau$ libre |
+| D9 | Residual | $\lvert\rho_\phi\rvert\le\bar\rho$, $\sum_\phi\rho_\phi=0$; $\bar\rho$ por norma o diseño | la parte común no balancea; la compra queda neutra | $\bar\rho=0$ con holgura penalizada |
+| D10 | Compra | con $\tilde P_k$ | contabilidad exacta | con $P^{\ast}_k$ |
+| D11 | Fin del horizonte | SoC objetivo, $W^{\mathrm{fin}}_k$ | evita vaciar las baterías a las 12 h | valorar la energía final en el objetivo |
+| D12 | Envolvente | la calcula cada MR, ya ajustada por su error propio | descentralizado, como Müller et al. [5] | el terciario recibe pronósticos internos |
+| D13 | EV | suma a $E_k$ mientras está conectado, respetando su carga de salida | entra en el núcleo, como pidió el profesor | EV como carga no flexible |
+| D14 | Banda del PI | $b_\phi\pm R^{\varepsilon}_\phi$ | el PI también entrega lo previsible | $\pm\sum r_k$ (se satura) |
+| D15 | Referencia del lazo | $e_\phi\to\rho_\phi$ | no gastar margen en el residual aceptado | $e_\phi\to0$ |
+| D16 | Lo previsible en el IC | prealimentación de $\hat y_k$ | el PI trabaja cerca de cero | que lo alcance el integrador |
+| D17 | Sintonía del PI | cancelación polo-cero, $1/K_i$ de 5 a 10 s | separación de escalas | otra sintonía tras PLECS |
+| D18 | Anti-windup | retrocálculo y *bumpless* al cambiar $b_\phi$ | recuperación inmediata tras agotar el margen | integración condicional |
+| D19 | $V_{dc}$ con lado AC | lo regulan la BESS y el secundario; el IC sigue $P_{\mathrm{ref}}$ | coherente con grid-following | el IC regula $V_{dc}$ |
+| D20 | Datos para $\sigma$ y $a$ | perfiles sintéticos (por ejemplo, IEEE European LV Test Feeder) | no hay historia del alimentador | datos reales si se consiguen |
+
+---
+
+## 16. Límites y supuestos (verdad cruda)
+
+1. **Piso energético:** una BESS solo compensa la parte del desbalance con media diaria cero. Si una fase está siempre más cargada y no tiene excedente FV, el residual no puede ser cero de forma sostenida. Es un tema de diseño, no de control (Sun et al. [9] llegan a lo mismo).
+2. $\Delta P_\phi\approx e_\phi$ supone que el PI es mucho más rápido que 15 min. Se verifica en simulación.
+3. AR(1) es un modelo simple del error.
+4. Si una fase se satura, $\sum_\phi\Delta P_\phi\neq0$: la compra cambia y vuelve parte del desbalance. Debería ocurrir con probabilidad del orden de $\varepsilon$, y hay que mostrarlo.
+5. Nada de esto está simulado. Los números son un ejemplo a mano.
+
+---
+
+## 17. Ejercicios con solución
+
+**E1.** Una fase tiene 2 MR con $E=8$ y $4$ kWh, $b=0{,}9$ kW y $R=0{,}6$ kW. Calcula $\alpha$, $\hat y$ y $r$.
+*Solución:* $\alpha=(2/3;\ 1/3)$, $\hat y=(0{,}6;\ 0{,}3)$ kW, $r=(0{,}4;\ 0{,}2)$ kW.
+
+**E2.** Con $\varepsilon=2{,}5\,\%$, ¿cuánto vale $z$? ¿Y el multiplicador de Cantelli?
+*Solución:* $z=1{,}96$; Cantelli $=\sqrt{39}=6{,}24$.
+
+**E3.** Calcula $f(3)$ con $a=0{,}5$ con la doble suma y con la fórmula cerrada.
+*Solución:* $3+2(2\cdot0{,}5+1\cdot0{,}25)=5{,}5$; $9-3{,}5=5{,}5$.
+
+**E4.** Con solo control P ($K_p=3$) y una perturbación de 2 kW, ¿cuánto desbalance queda?
+*Solución:* $2/(1+3)=0{,}5$ kW. Con PI, 0.
+
+**E5.** Un PI está saturado 30 s con un error de 0,8 kW y $K_i=0{,}2$ s$^{-1}$, sin anti-windup. ¿Cuánto se infla el integrador? ¿Cuánto tarda en volver si después el error es $-0{,}4$ kW?
+*Solución:* $0{,}2\cdot0{,}8\cdot30=4{,}8$ kW; $4{,}8/(0{,}2\cdot0{,}4)=60$ s.
+
+**E6.** Muestra que $\sum_\phi\rho_\phi=0$ implica $\sum_k\hat y_k=0$.
+*Solución:* $\sum_k\hat y_k=\sum_\phi b_\phi=\sum_\phi\hat e_\phi-\sum_\phi\rho_\phi=0$.
+
+**E7.** Si $T_{\mathrm{IC}}=20$ ms y se quiere $1/K_i=8$ s, ¿cuánto vale $K_p$?
+*Solución:* $K_i=0{,}125$ s$^{-1}$, $K_p=K_iT_{\mathrm{IC}}=0{,}0025$. Es muy pequeño: casi todo el trabajo lo hace la parte integral, lo esperable con una planta de ganancia uno y muy rápida. En la práctica, un "I casi puro".
+
+---
+
+## 18. Referencias
+
+[1] J. Warrington, P. Goulart, S. Mariéthoz y M. Morari, "Policy-based reserves for power systems," *IEEE Trans. Power Syst.*, vol. 28, no. 4, pp. 4427–4437, 2013. arXiv: https://arxiv.org/abs/1212.2119
+
+[2] D. Bienstock, M. Chertkov y S. Harnett, "Chance-constrained optimal power flow: Risk-aware network control under uncertainty," *SIAM Review*, vol. 56, no. 3, pp. 461–495, 2014. arXiv: https://arxiv.org/abs/1209.5779
+
+[3] L. Roald, F. Oldewurtel, B. Van Parys y G. Andersson, "Security constrained optimal power flow with distributionally robust chance constraints," arXiv:1508.06061, 2015.
+
+[4] T. Summers, J. Warrington, M. Morari y J. Lygeros, "Stochastic optimal power flow based on conditional value at risk and distributional robustness," *Int. J. Electr. Power Energy Syst.*, vol. 72, pp. 116–125, 2015.
+
+[5] F. L. Müller, J. Szabó, O. Sundström y J. Lygeros, "Aggregation and disaggregation of energetic flexibility from distributed energy resources," *IEEE Trans. Smart Grid*, vol. 10, no. 2, pp. 1205–1214, 2019. arXiv: https://arxiv.org/abs/1705.02815
+
+[6] Ghosh et al., "Adaptive relaxation based non-conservative chance constrained stochastic MPC," arXiv:2406.01973, 2024.
+
+[7] Reglamento (UE) 2017/1485 (SOGL), art. 157. https://gesetze.legal/eu/vo_eu_2017_1485/157
+
+[8] S. Haben, G. Giasemidis, F. Ziel y S. Arora, "Short term load forecasts of low voltage demand and the effects of weather," *Int. J. Forecasting*, vol. 35, no. 4, pp. 1469–1484, 2019. arXiv: https://arxiv.org/abs/1804.02955
+
+[9] S. Sun, B. Liang, M. Dong y J. A. Taylor, "Phase balancing using energy storage in power grids under uncertainty," arXiv:1505.03187, 2015.
+
+[10] K. J. Åström y T. Hägglund, *Advanced PID Control*. Research Triangle Park, NC, USA: ISA, 2006 (capítulo sobre windup y sus soluciones).
+
+**Nota.** De [1] y [9] se revisó el texto completo. Volúmenes y páginas de [1], [2], [4], [5], [8] y [10] son de memoria; verificarlos antes de citarlos en un documento formal.

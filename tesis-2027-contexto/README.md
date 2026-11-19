@@ -83,4 +83,10 @@ Un archivo por conversación del Proyecto (8 en total), más un índice. Cada un
 - Los `.html` muestran el mismo contenido con las ecuaciones renderizadas al abrirlos en un navegador (requieren internet para cargar KaTeX y marked desde cdnjs).
 
 **Actualizado:** `CLAUDE.md` (§1, nueva §2bis, fondos y pendiente A4) y `CRONOLOGIA.md` (entrada del 19-nov).
+
+### Segunda entrega del 19-nov (tras revisar el PDF compilado en Overleaf)
+- `documentos/presentaciones/laminas_reunion_23nov.tex` **rehecha (v2, 8 láminas)**. Corrige las sumatorias gigantes (`exscale`), los recuadros que se salían, el diagrama confuso del lazo rápido y los guiones de corte de palabra; reduce texto y agrega la lámina de decisiones a validar. Compila con XeLaTeX o pdfLaTeX. **Aún no verificada visualmente tras los cambios.**
+- `documentos/pautas/documento_formulacion_terciario_lazo_rapido.md` (+ `.html`): **documento principal**. Rigor matemático más explicación en simple; glosario completo (cada símbolo con unidad, tipo y origen); cálculo de la envolvente de cada MR; PI y anti-windup (§13); 20 decisiones a validar con el profesor, separadas de las ya validadas.
+- `documentos/pautas/explicacion_pedagogica_margen_error.md` (+ `.html`): versión en simple (tres ideas, ejemplo de 3 MR, PI y anti-windup en simple).
+- `documentos/pautas/guia_reunion_23nov.md` (+ `.html`): orden de 8 láminas y preguntas sobre el PI y el anti-windup.
 - `referencia_microred_dc.py`, `lecturas-terciario-10nov.md` y la memoria del Proyecto (`memoria/thesis-overview.md`, última actualización 10-nov). **La memoria todavía no refleja la reunión del 16-nov; el acta manda.**

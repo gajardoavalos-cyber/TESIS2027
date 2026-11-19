@@ -33,8 +33,10 @@
 Lunes 23-nov-2026, 17:00, Laboratorio E2Tech (fecha probable por la regla semanal; el acta del 16-nov no la fija). Con: Prof. Enrique Espina, Bernhardt Gotschlich e Ignacio Staforelli.
 
 Material:
-- Láminas: `presentaciones/laminas_reunion_23nov.tex`, 7 láminas.
-- Estudio paso a paso: `pautas/estudio_margen_error_terciario_lazo_rapido.md`.
+- Láminas: `presentaciones/laminas_reunion_23nov.tex`, 8 láminas (versión 2 del 19-nov, rehecha tras revisar el PDF compilado).
+- **Documento principal de estudio:** `pautas/documento_formulacion_terciario_lazo_rapido.md`, con la matemática, la explicación en simple, el glosario completo, el PI y el anti-windup, y las decisiones a validar.
+- Versión en simple: `pautas/explicacion_pedagogica_margen_error.md`.
+- Estudio paso a paso, versión anterior: `pautas/estudio_margen_error_terciario_lazo_rapido.md`.
 - Acuerdos que se responden: `correos/acta-reunion-16nov.md`, acuerdo A4.
 
 ---
@@ -60,7 +62,7 @@ El terciario sigue siendo un LP con solo energía en el objetivo.
 | A1. MR DC con primario y secundario validada | Cerrado | – |
 | A2. IC conectado a una fuente de 50 Hz, sin fallas | **Pendiente.** `MicroRed_DC_Validacion2.plecs` reorganiza la planta, pero aún no tiene lado AC (sin PLL, fuente sinusoidal ni filtro). | Decir el avance real. No mostrar nada que no corra. |
 | A3. Flujos de potencia DC y AC del IC | **Pendiente** (depende de A2) | Ídem |
-| A4. Álgebra del margen de error y formulación acabada | **Láminas 2 a 7** | Es el centro de la reunión |
+| A4. Álgebra del margen de error y formulación acabada | **Láminas 2 a 8** | Es el centro de la reunión |
 
 Si A2 avanza antes del lunes, agregar una lámina con la simulación (escalón de $P_{\mathrm{ref}}$, $P_{dc}$ frente a $P_{ac}$, $Q_{ac}\approx0$, rizado de 100 Hz en $V_{dc}$). Si no avanza, decirlo de entrada y comprometer una fecha.
 
@@ -71,13 +73,13 @@ Si A2 avanza antes del lunes, agregar una lámina con la simulación (escalón d
 | Lámina | Qué decir, en simple | Tiempo |
 |---|---|---|
 | 1. Niveles | Lo mismo de siempre, con dos cambios: el terciario envía $P^{\ast}_k$ y $\alpha_k$ a cada IC, y $b_\phi$, $\rho_\phi$ y $R^{\varepsilon}_\phi$ al lazo. El IC sigue $P^{\ast}_k+\alpha_k\Delta P_\phi$. | 2 min |
-| 2. Política afín | "Mi lazo es una política afín diagonal: plan más participación por el error. Es la reserva secundaria clásica." Separar lo previsible (energía) del error (margen). Las cuatro cosas que faltaban para dejarlo acabado. | 3 min |
-| 3. Modelo del error | Pronóstico naive estacional; $\sigma_\phi$ por hora del día; margen como restricción probabilística; tres formas de calcular el cuantil; propongo el empírico al 99 %, como la FRR europea. Qué cubre $m$. | 4 min |
-| 4. Reparto $\alpha_k$ | El terciario planifica el mismo reparto que el lazo ejecuta. $\alpha_k\propto E_k$ iguala el $\Delta$SoC. Con $\alpha_k$ fijo, (d) se cumple sola y todo es LP. Ejemplo de 3 MR. | 3 min |
-| 5. Energía en la trayectoria | El error acumulado crece; fórmula $f(n)$; gráfico; $\tau=\Delta t$; dos variantes a simular. | 4 min |
-| 6. LP completo | Leer de arriba abajo: conjuntos, parámetros, variables, objetivo, (0) a (e), horizonte rodante. Lo que agrega esta formulación. | 4 min |
-| 7. Lazo rápido | Banda $b\pm R$; error $e_\phi-\rho_\phi$; suma cero; dos formas equivalentes en el IC (prealimentación). | 3 min |
-| Cierre | Preguntas de decisión (abajo) y estado de A2/A3. | resto |
+| 2. Dos tipos de desbalance | Lo previsible (6 kWh de 18 a 22 h) se aparta como energía; el error, como margen. Antes todo era margen de 15 min y la BESS se agotaba a las 20:40. Los roles no cambian. | 3 min |
+| 3. Plan + reacción proporcional | El IC hace $P^{\ast}_k+\alpha_k\Delta P_\phi$: política afín, como la reserva secundaria clásica. Tabla: con reparto libre se rompe el plan; con $\alpha_k\propto E_k$ todas bajan 24 % de SoC. | 4 min |
+| 4. Modelo del error | Pronóstico simple → error histórico → margen al 99 %. Cuantil empírico (precedente FRR europea). Qué cubre $m$. Ejemplo: 1,37 kW. | 3 min |
+| 5. Margen de energía | El error se acumula; fórmula $f(n)$; gráfico (0,34 frente a 3,04 kWh a las 4 h); $\tau=\Delta t$. | 4 min |
+| 6. LP completo | Variables, parámetros, objetivo y (0) a (e). Todo lineal porque $\alpha_k$, $R$ y $Z$ son datos. | 3 min |
+| 7. Lazo rápido | Diagrama: error de la fase → $-\rho_\phi$ → PI saturado en $b\pm R$ con anti-windup → $\times\alpha_k$ → IC. Tres recuadros: banda, compra, forma equivalente. | 3 min |
+| 8. Decisiones | Recorrer la tabla y anotar qué acepta y qué cambia. | resto |
 
 ---
 
@@ -153,6 +155,12 @@ Sin ella, el LP no valora la energía después de 12 h y tiende a vaciar las bat
 
 **14. "¿Cómo sintonizas el PI?"**
 Primer paso: la planta, en el subespacio de suma cero, tiene ganancia unitaria. Con cancelación polo-cero del IC, el lazo cerrado es de primer orden con constante $1/K_i$ de 5 a 10 s. Queda por validar en PLECS cuando el IC tenga lado AC.
+
+**15. "¿Por qué un PI y no solo un proporcional?"**
+Porque necesito error permanente cero. Con solo P queda $d/(1+K_p)$ sin corregir; el integrador sigue actuando hasta que la fase iguala al promedio (o al residual aceptado $\rho_\phi$).
+
+**16. "¿Qué es el anti-windup y por qué lo necesitas?"**
+Cuando la salida del PI llega al límite de la banda, el error no baja, pero el integrador lo sigue acumulando y se "infla". Al volver el margen, el lazo se queda pegado al límite mientras desacumula, empujando en la dirección equivocada (unos 60 s en el ejemplo del documento). El anti-windup por retrocálculo descuenta del integrador lo que no se pudo aplicar ($K_{aw}=1$). Además, cuando $b_\phi$ cambia cada 15 min, desplazo el integrador en la misma cantidad para que no haya saltos. Detalle en la sección 13 del documento principal.
 
 ---
 

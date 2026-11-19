@@ -45,7 +45,7 @@ Arquitectura vigente (detalle en `CRONOLOGIA.md` → "Decisiones vigentes"):
 - **Aún sin simular.** La lista de lo que falta para dejar las ecuaciones "acabadas" está en `documentos/correos/acta-reunion-16nov.md` (A4).
 
 ## 2bis. Formulación del margen de error propuesta para el 23-nov (por validar)
-Detalle y derivaciones en `documentos/pautas/estudio_margen_error_terciario_lazo_rapido.md`.
+**Documento principal:** `documentos/pautas/documento_formulacion_terciario_lazo_rapido.md`. Contiene el glosario completo, la envolvente de cada MR, el PI con anti-windup (retrocálculo, K_aw = 1, bumpless al cambiar b_φ) y la tabla de decisiones D1–D20 a validar. Versión en simple: `explicacion_pedagogica_margen_error.md`. Láminas v2 de 8 láminas.
 - **Idea central:** el lazo rápido es una **política afín de reserva diagonal** (Warrington et al., 2013): `P_IC,k = P*_k + α_k·ΔP_φ`, con factores de participación `α_k ≥ 0`, `Σα_k = 1`.
 - **Reparto:** `ŷ_k = α_k·b_φ`, `b_φ = ê_φ − ρ_φ`; `r_k = α_k·R^ε_φ`. `α_k` se fija antes de resolver (propuesta `α_k = E_k/ΣE_j`, mismo ΔSoC); si fuera variable, el problema sería bilineal. (d) se cumple por construcción.
 - **Margen de potencia:** `R^ε↑_φ = q_{1−ε}(ξ_φ) + m` (cuantil empírico propuesto, precedente SOGL art. 157 al 99 %; gaussiano `zσ_φ + m`). `m` = variación dentro de 15 min + medida + seguimiento del PI.
