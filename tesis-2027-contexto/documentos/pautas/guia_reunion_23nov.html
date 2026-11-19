@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía para la reunión del 23-nov: margen de error del terciario y lazo rápido</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<style>
+  :root { --fg:#1d2329; --bg:#ffffff; --muted:#55606e; --teal:#009688; --tealbg:#e8f5f3; --line:#d9dee3; --code:#f5f7f8; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e6e9ec; --bg:#15191d; --muted:#a3adb8; --teal:#4db6ac; --tealbg:#1c2b2a; --line:#333b43; --code:#1e2429; } }
+  body { background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; margin:0; }
+  main { max-width:900px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { color:var(--teal); font-size:1.7rem; line-height:1.25; }
+  h2 { color:var(--teal); border-bottom:2px solid var(--line); padding-bottom:4px; margin-top:2.2rem; }
+  h3 { margin-top:1.6rem; }
+  table { border-collapse:collapse; width:100%; display:block; overflow-x:auto; font-size:.93rem; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:var(--tealbg); }
+  blockquote { margin:1rem 0; padding:8px 14px; border-left:4px solid var(--teal); background:var(--tealbg); }
+  code { background:var(--code); padding:1px 4px; border-radius:3px; font-size:.9em; }
+  .katex-display { overflow-x:auto; overflow-y:hidden; padding:4px 0; }
+  hr { border:0; border-top:1px solid var(--line); margin:2rem 0; }
+  a { color:var(--teal); }
+</style>
+</head>
+<body>
+<main id="out">Cargando… (requiere conexión a internet para dar formato a las ecuaciones)</main>
+<script type="text/markdown" id="src">
+# Guía para la reunión del 23-nov: margen de error del terciario y lazo rápido
+
+Lunes 23-nov-2026, 17:00, Laboratorio E2Tech (fecha probable por la regla semanal; el acta del 16-nov no la fija). Con: Prof. Enrique Espina, Bernhardt Gotschlich e Ignacio Staforelli.
+
+Material:
+- Láminas: `presentaciones/laminas_reunion_23nov.tex`, 7 láminas.
+- Estudio paso a paso: `pautas/estudio_margen_error_terciario_lazo_rapido.md`.
+- Acuerdos que se responden: `correos/acta-reunion-16nov.md`, acuerdo A4.
+
+---
+
+## En 30 segundos
+
+El lazo rápido de cada fase es una **política afín de reserva con matriz diagonal**: el plan del terciario más una fracción fija $\alpha_k$ de la corrección de la fase. Es el mismo objeto que la reserva secundaria clásica, con factores de participación (Warrington et al., 2013).
+
+Escribirlo así deja acabada el álgebra del margen:
+- **Margen de potencia por fase:** $R^{\varepsilon}_\phi=q_{1-\varepsilon}(\xi_\phi)+m$, con el cuantil del error del pronóstico simple.
+- **Reparto entre MR:** $\hat y_k=\alpha_k b_\phi$ y $r_k=\alpha_k R^{\varepsilon}_\phi$, con $\alpha_k\propto E_k$ (mismo $\Delta$SoC).
+- **Energía:** el margen crece con el horizonte, $Z_\phi(t)=(z\sigma_\phi\sqrt{f(t+1)}+m)\Delta t$. En el primer tramo vale $R^{\varepsilon}\Delta t$, así que el antiguo $\tau$ es $\Delta t$.
+- **Banda del PI:** $b_\phi\pm R^{\varepsilon}_\phi$, no $\pm\sum r_k$.
+
+El terciario sigue siendo un LP con solo energía en el objetivo.
+
+---
+
+## Estado de los acuerdos del 16-nov
+
+| Acuerdo | Estado al 19-nov | Qué decir |
+|---|---|---|
+| A1. MR DC con primario y secundario validada | Cerrado | – |
+| A2. IC conectado a una fuente de 50 Hz, sin fallas | **Pendiente.** `MicroRed_DC_Validacion2.plecs` reorganiza la planta, pero aún no tiene lado AC (sin PLL, fuente sinusoidal ni filtro). | Decir el avance real. No mostrar nada que no corra. |
+| A3. Flujos de potencia DC y AC del IC | **Pendiente** (depende de A2) | Ídem |
+| A4. Álgebra del margen de error y formulación acabada | **Láminas 2 a 7** | Es el centro de la reunión |
+
+Si A2 avanza antes del lunes, agregar una lámina con la simulación (escalón de $P_{\mathrm{ref}}$, $P_{dc}$ frente a $P_{ac}$, $Q_{ac}\approx0$, rizado de 100 Hz en $V_{dc}$). Si no avanza, decirlo de entrada y comprometer una fecha.
+
+---
+
+## Orden de exposición
+
+| Lámina | Qué decir, en simple | Tiempo |
+|---|---|---|
+| 1. Niveles | Lo mismo de siempre, con dos cambios: el terciario envía $P^{\ast}_k$ y $\alpha_k$ a cada IC, y $b_\phi$, $\rho_\phi$ y $R^{\varepsilon}_\phi$ al lazo. El IC sigue $P^{\ast}_k+\alpha_k\Delta P_\phi$. | 2 min |
+| 2. Política afín | "Mi lazo es una política afín diagonal: plan más participación por el error. Es la reserva secundaria clásica." Separar lo previsible (energía) del error (margen). Las cuatro cosas que faltaban para dejarlo acabado. | 3 min |
+| 3. Modelo del error | Pronóstico naive estacional; $\sigma_\phi$ por hora del día; margen como restricción probabilística; tres formas de calcular el cuantil; propongo el empírico al 99 %, como la FRR europea. Qué cubre $m$. | 4 min |
+| 4. Reparto $\alpha_k$ | El terciario planifica el mismo reparto que el lazo ejecuta. $\alpha_k\propto E_k$ iguala el $\Delta$SoC. Con $\alpha_k$ fijo, (d) se cumple sola y todo es LP. Ejemplo de 3 MR. | 3 min |
+| 5. Energía en la trayectoria | El error acumulado crece; fórmula $f(n)$; gráfico; $\tau=\Delta t$; dos variantes a simular. | 4 min |
+| 6. LP completo | Leer de arriba abajo: conjuntos, parámetros, variables, objetivo, (0) a (e), horizonte rodante. Lo que agrega esta formulación. | 4 min |
+| 7. Lazo rápido | Banda $b\pm R$; error $e_\phi-\rho_\phi$; suma cero; dos formas equivalentes en el IC (prealimentación). | 3 min |
+| Cierre | Preguntas de decisión (abajo) y estado de A2/A3. | resto |
+
+---
+
+## Ecuaciones para saber de memoria
+
+```math
+e_\phi=P_{h,\phi}-\bar P_h=D_\phi-(S_\phi-\bar S)=\hat e_\phi+\xi_\phi,\qquad \textstyle\sum_\phi e_\phi=0
+```
+
+```math
+P_{\mathrm{IC},k}=P^{\ast}_k+\alpha_k\Delta P_\phi,\qquad \hat y_k=\alpha_k b_\phi,\qquad r_k=\alpha_kR^{\varepsilon}_\phi,\qquad \alpha_k=\frac{E_k}{\sum_j E_j}
+```
+
+```math
+R^{\varepsilon\uparrow}_\phi=q_{1-\varepsilon}(\xi_\phi)+m\quad(\text{gaussiano: }z\sigma_\phi+m)
+```
+
+```math
+Z_\phi(t)=\big(z\sigma_\phi\sqrt{f(t+1)}+m\big)\Delta t,\qquad f(n)=\frac{n(1+a)}{1-a}-\frac{2a(1-a^n)}{(1-a)^2}
+```
+
+```math
+\Delta P_\phi\in[\,b_\phi-R^{\varepsilon\downarrow}_\phi,\ b_\phi+R^{\varepsilon\uparrow}_\phi\,],\qquad u_\phi=\frac{\Delta P_\phi-b_\phi}{R^{\varepsilon}_\phi}\in[-1,1]
+```
+
+Tres números del ejemplo, con $\sigma=0{,}5$ kW, $z=2{,}33$ y $m=0{,}2$ kW:
+- $R^{\varepsilon}=1{,}37$ kW;
+- $Z$ a las 4 h: $1{,}22$ kWh con $a=0$ y $3{,}04$ kWh con $a=0{,}8$;
+- MR$_1$ ($\alpha=0{,}4$): $3{,}6$ kWh apartados, frente a los $0{,}14$ kWh de $r\tau$.
+
+---
+
+## Banco de preguntas y respuestas
+
+**1. "¿Por qué una política afín y no otra cosa?"**
+Porque es lo que el lazo ya hace: un PI con reparto fijo es una respuesta lineal al error. Escribirlo así permite al terciario saber de antemano cuánta energía y potencia va a gastar el lazo. Warrington lo muestra para reservas en sistemas de potencia; la diagonal es la reserva secundaria clásica.
+
+**2. "¿No estás metiendo el balance en el terciario otra vez?"**
+No en el objetivo, que sigue siendo solo compra. El terciario aparta la energía que el lazo va a usar; el único que balancea es el lazo. (a) y (b) son restricciones de consistencia, no un costo de desbalance.
+
+**3. "¿Por qué fijas $\alpha_k$ y no lo optimizas?"**
+Si $\hat y_k$ y $r_k$ son libres por separado, el lazo, que reparte en proporción fija, no ejecuta lo planificado; para forzarlo hace falta $\hat y_kR_\phi=r_kb_\phi$, que es bilineal. Con $\alpha_k$ fijo el problema sigue siendo LP. Optimizarlo con LP secuencial es una extensión.
+
+**4. "¿Por qué proporcional a $E_k$?"**
+Porque iguala el $\Delta$SoC de todas las MR de la fase: $\Delta\mathrm{SoC}_k=\Delta E_\phi/\sum_j E_j$. Ninguna se agota antes.
+
+**5. "¿De dónde sale $\sigma_\phi$ si no tienes datos?"**
+Del historial del error del pronóstico naive estacional, por hora del día. Hoy no hay datos del alimentador; propongo perfiles sintéticos (por ejemplo, el alimentador europeo de BT de IEEE) para estimar $\sigma$ y $a$. Decirlo como supuesto.
+
+**6. "¿Por qué no asumir gaussiano y listo?"**
+Se puede, y da $z=2{,}33$ al 1 %. Pero el error de demanda suele ser asimétrico y de colas pesadas. El cuantil empírico no supone forma y tiene precedente: la FRR europea cubre el 99 % de los desbalances históricos. Cantelli (sin supuesto) da $9{,}95\sigma$, demasiado conservador.
+
+**7. "¿Qué es $m$ exactamente?"**
+Lo que no ve el promedio de 15 min: la variación dentro del tramo, más la medida y el seguimiento del PI. Se estima con datos de 1 min.
+
+**8. "¿Por qué el margen de energía crece con el tiempo? ¿No se re-planifica cada 15 min?"**
+Sí, y por eso en el primer tramo basta con $R\cdot\Delta t$. Pero el plan de los tramos siguientes tiene que seguir siendo alcanzable: si el error persiste, la energía ya gastada no vuelve. Por eso propongo simular las dos variantes (solo el primer tramo frente a creciente) y elegir con datos.
+
+**9. "¿Qué pasó con $\tau$?"**
+Era la duración supuesta de la reserva. Con la política afín y re-planificación cada 15 min, $\tau=\Delta t$: no es un parámetro libre.
+
+**10. "¿Por qué la banda del PI no es $\pm\sum r_k$?"**
+Porque el lazo también entrega lo previsible $b_\phi$, que puede superar el margen del error (1,5 frente a 1,37 kW en el ejemplo). Con $\pm\sum r_k$ quedaría saturado todo el evento. Con $b_\phi\pm R^{\varepsilon}_\phi$, $u_\phi=0$ en lo nominal y $|u_\phi|\le1$ con probabilidad $1-\varepsilon$.
+
+**11. "¿El balance cambia la compra?"**
+Con $\sum_\phi\rho_\phi=0$ y sin saturación, no: $\sum_\phi\Delta P_\phi=0$. Si una fase se satura, sí. Por eso la compra del LP se escribe con $\tilde P$, y es el caso que hay que mostrar en simulación.
+
+**12. "¿Qué pasa si no alcanza la energía?"**
+El LP lo detecta con hasta 12 h de anticipación: aparece un residual $\rho$ o, si supera $\bar\rho$, una holgura penalizada que funciona como alarma. Una BESS solo compensa la parte del desbalance con media diaria cero (piso energético); lo demás es diseño, no control.
+
+**13. "¿Por qué agregas una condición al final del horizonte?"**
+Sin ella, el LP no valora la energía después de 12 h y tiende a vaciar las baterías al final. Es la miopía típica del horizonte finito.
+
+**14. "¿Cómo sintonizas el PI?"**
+Primer paso: la planta, en el subespacio de suma cero, tiene ganancia unitaria. Con cancelación polo-cero del IC, el lazo cerrado es de primer orden con constante $1/K_i$ de 5 a 10 s. Queda por validar en PLECS cuando el IC tenga lado AC.
+
+---
+
+## Decisiones que conviene pedirle
+
+1. ¿$\hat y_k$ se envía al IC como **prealimentación**, o el PI lo alcanza por integración?
+2. ¿Acepta $\alpha_k\propto E_k$, o prefiere otro criterio?
+3. ¿Qué **nivel de riesgo** $\varepsilon$? ¿Acepta el cuantil empírico al estilo de la FRR europea?
+4. ¿Margen de energía **solo en el primer tramo** o **creciente** (o simular ambos)?
+5. ¿De dónde debe salir $\bar\rho$: una norma de desbalance o un criterio de diseño?
+6. ¿Confirma que el IC no regula $V_{dc}$ (lo hacen la BESS y el secundario) al conectar el lado AC?
+
+---
+
+## Lista antes del lunes
+
+- [ ] Compilar las láminas con XeLaTeX (dos pasadas) y revisar que nada se salga de los recuadros.
+- [ ] Leer el estudio (secciones 3, 4, 6 y 9 primero) y hacer los ejercicios E1, E3 y E5 a mano.
+- [ ] Repasar de memoria las cinco ecuaciones de arriba y los tres números del ejemplo.
+- [ ] Leer [Warrington et al.](https://arxiv.org/abs/1212.2119): resumen, secc. 3.1 y 4.2–4.3 (20 min).
+- [ ] Leer [Bienstock et al.](https://arxiv.org/abs/1209.5779): solo la parte de factores de participación y la reformulación con $z\sigma$ (15 min).
+- [ ] Decidir qué decir sobre A2/A3 (avance real del IC con lado AC).
+- [ ] Llevar impresa la lámina 6 (LP completo) para anotar lo que diga el profesor.
+
+---
+
+## Lo que no está verificado
+
+- Nada de la nueva formulación está simulado; los números son un ejemplo a mano con supuestos ($\sigma$, $a$, $E_k$).
+- Las láminas no se compilaron en este equipo, que no tiene LaTeX instalado. Están escritas sobre la plantilla de la v2 del 16-nov, que sí compilaba, pero hay que revisarlas visualmente.
+- No se sabe si el profesor aceptará fijar $\alpha_k$ o el cuantil empírico. Por eso van como preguntas, no como decisiones cerradas.
+- La cita "Nasrolahpour et al., IEEE TSTE 2017" de la guía del 16-nov parece estar mal: lo que se encontró de esos autores es un paper en IEEE TSG sobre otro tema. No usarla hasta verificarla.
+</script>
+<script>
+(function () {
+  var src = document.getElementById('src').textContent;
+  var store = [];
+  function keep(tex, display) { store.push({ tex: tex, display: display }); return '@@M' + (store.length - 1) + '@@'; }
+  src = src.replace(/```math\s*\n([\s\S]*?)\n```/g, function (_, t) { return '\n\n' + keep(t, true) + '\n\n'; });
+  src = src.replace(/\\$/g, '@@DOLLAR@@');
+  src = src.replace(/\$([^\$\n]+?)\$/g, function (_, t) { return keep(t, false); });
+  var html = marked.parse(src);
+  html = html.replace(/@@M(\d+)@@/g, function (_, i) {
+    var m = store[+i];
+    try { return katex.renderToString(m.tex, { displayMode: m.display, throwOnError: false }); }
+    catch (e) { return '<code>' + m.tex + '</code>'; }
+  });
+  html = html.replace(/@@DOLLAR@@/g, '$');
+  document.getElementById('out').innerHTML = html;
+})();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ Este archivo es el punto de entrada para Claude Code. Léelo completo antes de t
 - **Última reunión:** lunes **16-nov-2026**. Se presentaron `documentos/presentaciones/laminas_reunion_16nov_v2.tex` (6 láminas, con la corrección del terciario) y la simulación PLECS de una Micro-red DC.
 - **Acuerdos vigentes:** `documentos/correos/acta-reunion-16nov.md` (acta enviada por Felipe al profesor el 17-nov, 14:50; sin respuesta registrada). **Leerla antes de cualquier tarea.**
 - **Próxima reunión:** probablemente lunes **23-nov-2026**, 17:00 (por la regla semanal; no confirmado en el acta).
+- **Material preparado para el 23-nov (19-nov):** `documentos/presentaciones/laminas_reunion_23nov.tex` (7 láminas, acuerdo A4), `documentos/pautas/estudio_margen_error_terciario_lazo_rapido.md` (matemática paso a paso) y `documentos/pautas/guia_reunion_23nov.md` (guía y banco de preguntas). Ver §2bis. **Es una propuesta: el profesor aún no la valida.**
 
 ## 2. El tema hoy (al 17-nov-2026)
 **Gestión jerárquica de un alimentador BT trifásico de 4 hilos con Micro-redes DC por fase.**
@@ -43,6 +44,16 @@ Arquitectura vigente (detalle en `CRONOLOGIA.md` → "Decisiones vigentes"):
 - **Límite físico (verdad cruda):** una BESS solo compensa la parte del desbalance con media diaria cero. Lo demás queda como residual acotado ρ_φ.
 - **Aún sin simular.** La lista de lo que falta para dejar las ecuaciones "acabadas" está en `documentos/correos/acta-reunion-16nov.md` (A4).
 
+## 2bis. Formulación del margen de error propuesta para el 23-nov (por validar)
+Detalle y derivaciones en `documentos/pautas/estudio_margen_error_terciario_lazo_rapido.md`.
+- **Idea central:** el lazo rápido es una **política afín de reserva diagonal** (Warrington et al., 2013): `P_IC,k = P*_k + α_k·ΔP_φ`, con factores de participación `α_k ≥ 0`, `Σα_k = 1`.
+- **Reparto:** `ŷ_k = α_k·b_φ`, `b_φ = ê_φ − ρ_φ`; `r_k = α_k·R^ε_φ`. `α_k` se fija antes de resolver (propuesta `α_k = E_k/ΣE_j`, mismo ΔSoC); si fuera variable, el problema sería bilineal. (d) se cumple por construcción.
+- **Margen de potencia:** `R^ε↑_φ = q_{1−ε}(ξ_φ) + m` (cuantil empírico propuesto, precedente SOGL art. 157 al 99 %; gaussiano `zσ_φ + m`). `m` = variación dentro de 15 min + medida + seguimiento del PI.
+- **Energía (c):** margen creciente `Z_φ(t) = (zσ_φ·√f(t+1) + m)·Δt`, con `f(n)` del error AR(1); en el primer tramo `Z = R^ε·Δt`, así que `τ = Δt`. Variantes a simular: (c-i) solo el primer tramo, (c-ii) creciente.
+- **LP:** compra con `P̃_k = P*_k + ŷ_k`; `|ρ_φ| ≤ ρ̄` y `Σ_φ ρ_φ = 0`; condición final `Σ P̃_k Δt ≤ W^fin_k`.
+- **Lazo rápido:** error `e_φ − ρ_φ`; PI limitado a `[b_φ − R^ε↓_φ, b_φ + R^ε↑_φ]` (no `±Σr_k`); indicador `u_φ = (ΔP_φ − b_φ)/R^ε_φ ∈ [−1, 1]`; forma equivalente `P_ref,k = P*_k + ŷ_k + u_φ·r_k` (ŷ_k como prealimentación es una decisión pendiente).
+- **Preguntas abiertas al profesor:** prealimentación de ŷ_k, criterio de α_k, nivel ε, variante de (c), origen de ρ̄, quién regula V_dc con el lado AC.
+
 ## 3. Mapa de la carpeta
 ```
 CLAUDE.md                 ← este archivo
@@ -66,7 +77,7 @@ referencias/              ← documento de orientación de julio 2026 (PDF + tex
 - **LaTeX:**
   - Plantilla de clases USACH: `beamer`, `aspectratio=169`, XeLaTeX con `fontspec` + `polyglossia` (español).
   - Colores: teal `#009688`, naranjo `#E77500`; código de colores por nivel: terciario naranjo, lazo rápido verde `#2E7D32`, secundario teal, primario azul `#1F5FAF`.
-  - Fondos `fig/fondo_usach_portada.png` y `fig/fondo_usach_contenido.png`. **No están en esta carpeta**; pedírselos a Felipe para compilar. (El fondo de contenido también se puede extraer con `pdfimages -png` de cualquier PDF de láminas del 9-nov: es la imagen de fondo de la página.)
+  - Fondos `fig/fondo_usach_portada.png` y `fig/fondo_usach_contenido.png`. Desde el 19-nov, `documentos/presentaciones/fig/fondo_usach_contenido.png` **está en el repositorio** (recuperado de la imagen embebida en `laminas_reunion_16nov_final.pdf`, 1387×778 px). El de portada sigue faltando; pedírselo a Felipe si se necesita.
   - Sin referencias al correo en las láminas ("punto 2", "10-nov"): Felipe las menciona de palabra.
   - Referencias en formato IEEE.
 - **Convenciones de signo:** P_IC > 0 = DC→AC (inyecta a la red); P_B > 0 = la batería descarga; P_h > 0 = el alimentador importa desde la S/E. En la lámina 16-nov, P > 0 = el IC entrega a la red.
@@ -83,7 +94,7 @@ referencias/              ← documento de orientación de julio 2026 (PDF + tex
 **Para la próxima reunión (acta del 16-nov):**
 1. **Conectar el IC a una fuente de tensión de 50 Hz en PLECS** y que la simulación corra sin fallas. Hasta ahora el IC era solo una fuente de potencia en el bus DC; **el criterio anterior de "no modelar el lado AC" queda reemplazado**. Propuesta: inversor monofásico en modelo promedio + filtro L/LCL + PLL (SOGI) + control de corriente PR a 50 Hz, grid-following con P_ref y Q_ref = 0. Detalle y riesgos (rizado de 100 Hz en V_dc) en `documentos/correos/acta-reunion-16nov.md` (A2).
 2. **Mostrar los flujos de potencia DC y AC del IC** (P_dc, P_ac, Q_ac, v y i AC) y comprobar P_ac ≈ P_dc y Q_ac ≈ 0 (A3).
-3. **Terciario: álgebra del margen de error y formulación acabada** (A4): definir cada símbolo con unidades; modelo del error (σ_φ, ε̄_k, z); criterio de reparto de r_k entre las MR de una fase; restricción de energía en toda la trayectoria; LP completo en una página con horizonte rodante; coherencia con el límite del PI del lazo rápido.
+3. **Terciario: álgebra del margen de error y formulación acabada** (A4). **Propuesta preparada el 19-nov** (§2bis, láminas del 23-nov); falta que el profesor la valide y simularla. Lo pedido era: definir cada símbolo con unidades; modelo del error (σ_φ, ε̄_k, z); criterio de reparto de r_k entre las MR de una fase; restricción de energía en toda la trayectoria; LP completo en una página con horizonte rodante; coherencia con el límite del PI del lazo rápido.
 
 **Siguen abiertos:**
 4. **PLECS nunca ejecutado por Claude.** El `.plecs` lo abrió Felipe y fue validado por el profesor en lo DC. Errores ya vistos al abrir: "cannot determine start point of connection segment" (corregido con holgura de ≥ 45 px entre quiebres y bloques). `verificar_plecs.py` y `gen_plecs.py` (generador del `.plecs`) existieron en el chat de simulación, pero **no están en el Proyecto ni en esta carpeta**: si se necesitan, pedírselos a Felipe o reescribirlos.

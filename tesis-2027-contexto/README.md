@@ -73,4 +73,14 @@ Un archivo por conversación del Proyecto (8 en total), más un índice. Cada un
 
 **Sin cambios:**
 - `MicroRed_DC_Validacion.plecs`: idéntico byte a byte a la versión del Proyecto (SHA-256 `35a25690…`).
+
+## Cambios del 19-nov-2026
+**Agregado (material para la reunión del 23-nov, acuerdo A4 del acta):**
+- `documentos/presentaciones/laminas_reunion_23nov.tex`: 7 láminas en la plantilla USACH (mismo formato que la v2 del 16-nov). Niveles actualizados, lazo rápido como política afín, modelo del error, factores de participación, energía en la trayectoria, LP completo y lazo rápido coherente. **No se compilaron en el equipo donde se escribieron (sin LaTeX); revisarlas visualmente al compilar.**
+- `documentos/presentaciones/fig/fondo_usach_contenido.png`: fondo de contenido recuperado de `laminas_reunion_16nov_final.pdf`.
+- `documentos/pautas/estudio_margen_error_terciario_lazo_rapido.md` (+ `.html`): matemática paso a paso del terciario y del lazo rápido, con derivaciones, ejemplo numérico, ejercicios con solución y referencias IEEE.
+- `documentos/pautas/guia_reunion_23nov.md` (+ `.html`): guía de la reunión, orden de exposición, banco de preguntas, decisiones a pedir y lista de preparación.
+- Los `.html` muestran el mismo contenido con las ecuaciones renderizadas al abrirlos en un navegador (requieren internet para cargar KaTeX y marked desde cdnjs).
+
+**Actualizado:** `CLAUDE.md` (§1, nueva §2bis, fondos y pendiente A4) y `CRONOLOGIA.md` (entrada del 19-nov).
 - `referencia_microred_dc.py`, `lecturas-terciario-10nov.md` y la memoria del Proyecto (`memoria/thesis-overview.md`, última actualización 10-nov). **La memoria todavía no refleja la reunión del 16-nov; el acta manda.**
