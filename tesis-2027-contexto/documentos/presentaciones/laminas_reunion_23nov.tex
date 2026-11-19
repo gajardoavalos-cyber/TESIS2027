@@ -10,16 +10,26 @@
 %   L5  Energía en toda la trayectoria (el margen crece con el horizonte)
 %   L6  Terciario: el LP completo
 %   L7  Lazo rápido coherente con el terciario
-%  Compilar con XeLaTeX: xelatex laminas_reunion_23nov.tex (dos pasadas)
+%  Compilar con XeLaTeX (recomendado) o pdfLaTeX, dos pasadas
 %  Requiere fig/fondo_usach_contenido.png (incluido junto a este archivo)
 % =====================================================================
 \PassOptionsToPackage{table}{xcolor}
 \documentclass[aspectratio=169,10pt,t]{beamer}
 
 \usefonttheme{professionalfonts}
-\usepackage{fontspec}
-\usepackage{polyglossia}
-\setmainlanguage{spanish}
+% Compila con XeLaTeX/LuaLaTeX (fontspec + polyglossia) o con pdfLaTeX
+% (inputenc + babel). En Overleaf: Menu -> Compiler -> XeLaTeX o pdfLaTeX.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage[spanish,es-noshorthands,es-nodecimaldot]{babel}
+\else
+  \usepackage{fontspec}
+  \usepackage{polyglossia}
+  \setmainlanguage{spanish}
+\fi
 \usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
 \usepackage{tikz}
